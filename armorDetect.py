@@ -24,7 +24,7 @@ def widthDifferenceDet(wLeft, wRight):
 def armorAspectDet(xLeft, yLeft, xRight, yRight, hLeft, hRight, wLeft, wRight):
     armorAspect = math.sqrt((yRight-yLeft)**2 + (xRight-xLeft)**2) / max(hLeft, hRight, wLeft, wRight)
     #print("aspectDet: {0}".format(armorAspect))
-    return 7 >= armorAspect and armorAspect >= 2
+    return (7 >= armorAspect and armorAspect >= 5) or (3 >= armorAspect and armorAspect >= 2)
             
 
 

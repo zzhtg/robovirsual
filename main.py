@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     cap = cv2.VideoCapture(cam)
     cap.set(3, 1390)
-    cap.set(15, -4)
+    cap.set(15, -5)
     mode = ord("r")
     cv2.namedWindow("frame")
     
