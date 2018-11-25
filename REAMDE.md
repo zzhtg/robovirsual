@@ -1,3 +1,5 @@
-This is a child's trick
-Finished it
-Building and enjoying
+This is a child's trick;
+
+Finished it;
+
+Building and enjoying;
