@@ -58,31 +58,35 @@ def lightDetect(image):
 
 def parallelDet(aLeft, aRight):
     paralle = abs(abs(aLeft + 45) - abs(aRight + 45))
-    print("----------------------\nparalle: {0}".format(paralle))
-    return paralle < 7
+    print("paralle: {0}".format(paralle))
+    return paralle < 9
 
 
 def hightDifferenceDet(hLeft, hRight):
     hightDif = abs(hLeft-hRight) / max(hLeft, hRight)
     print("hightDif: {0}".format(hightDif))
-    return  hightDif <= 0.9
+    return  hightDif <= 0.2
 
 
 def widthDifferenceDet(wLeft, wRight):
     widthDif = abs(wLeft-wRight) / max(wLeft, wRight)
     print("widthDif: {0}".format(widthDif))
-    return widthDif <= 0.9
+    return widthDif <= 0.5
 
 
 def armorAspectDet(xLeft, yLeft, xRight, yRight, hLeft, hRight, wLeft, wRight):
     armorAspect = math.sqrt((yRight-yLeft)**2 + (xRight-xLeft)**2) / max(hLeft, hRight, wLeft, wRight)
     print("aspectDet: {0}".format(armorAspect))
-    return (7 >= armorAspect and armorAspect >= 5) or (3 >= armorAspect and armorAspect >= 2)
+    return (7 >= armorAspect and armorAspect >= 5.5) or (3.5 >= armorAspect and armorAspect >= 2)
 
 
 def isArmor(leftLight, rightLight):
     [xLeft, yLeft], [wLeft, hLeft], aLeft = leftLight[0], leftLight[1], leftLight[2]
     [xRight, yRight], [wRight, hRight], aRight = rightLight[0], rightLight[1], rightLight[2]
+    if aLeft == -90:
+        wLeft, hLeft = hLeft, wLeft
+    if aRight == -90:
+        wRight, hRight = hRight, wRight
     return (parallelDet(aLeft, aRight) and 
             hightDifferenceDet(hLeft, hRight) and
             widthDifferenceDet(wLeft, wRight) and 
@@ -101,8 +105,9 @@ def armorDetect(lightGroup):
             if lightGroup[left][0][0] > lightGroup[right][0][0]:
                 left, right = right, left
             if not isArmor(lightGroup[left], lightGroup[right]):
+                print("xxxxxxx".center(50, "-"))
                 continue
-            print("succesee".center(50, ">"))
+            #print("succesee".center(50, ">"))
 
             lpixel = cv2.boxPoints(lightGroup[left])
             rpixel = cv2.boxPoints(lightGroup[right])
@@ -110,7 +115,7 @@ def armorDetect(lightGroup):
             xmaxp = sorted(np.append(lpixel[0:4, 0], rpixel[0:4, 0]))[7]
             yminp = sorted(np.append(lpixel[0:4, 1], rpixel[0:4, 1]))[0]
             ymaxp = sorted(np.append(lpixel[0:4, 1], rpixel[0:4, 1]))[7]
-
+            
             armor = [xminp, yminp, xmaxp-xminp, ymaxp-yminp]
             armorArea.append(armor)
     return armorArea
@@ -143,8 +148,8 @@ if __name__ == "__main__":
         armor = armorDetect(lightDetect(frame))
 #---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-------------------------------
         if len(armor) > 0:
-            x, y, w, h = armor[0]
-            cv2.rectangle(frame, (x, y), (x + w, y+h), (0, 0, 255), 2)
+            for x, y, w, h in armor:
+                cv2.rectangle(frame, (x, y), (x + w, y+h), (0, 0, 255), 2)
         measurement(frame, e1)
         key = cv2.waitKey(5)
         if key == ord("r") or key == ord("b"):
