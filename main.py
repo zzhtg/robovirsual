@@ -2,17 +2,7 @@
 import cv2
 import numpy as np
 import sys
-from lightDetect import *
-from armorDetect import *
 import math
-
-
-def parallelDet(aLeft, aRight):
-    paralle = abs(abs(aLeft + 45) - abs(aRight + 45))
-    #print("----------------------\nparalle: {0}".format(paralle))
-    return paralle < 25
-
-
 
 
 def frameReady(image):
@@ -66,21 +56,27 @@ def lightDetect(image):
     return lightGroup
 
 
+def parallelDet(aLeft, aRight):
+    paralle = abs(abs(aLeft + 45) - abs(aRight + 45))
+    print("----------------------\nparalle: {0}".format(paralle))
+    return paralle < 7
+
+
 def hightDifferenceDet(hLeft, hRight):
-    hightDif = hLeft+hRight / max(hLeft, hRight)
-    #print("hightDif: {0}".format(hightDif))
-    return  hightDif >= 1.5
+    hightDif = abs(hLeft-hRight) / max(hLeft, hRight)
+    print("hightDif: {0}".format(hightDif))
+    return  hightDif <= 0.9
 
 
 def widthDifferenceDet(wLeft, wRight):
-    widthDif = wLeft+wRight / max(wLeft, wRight)
-    #print("widthDif: {0}".format(widthDif))
-    return widthDif >= 1.5
+    widthDif = abs(wLeft-wRight) / max(wLeft, wRight)
+    print("widthDif: {0}".format(widthDif))
+    return widthDif <= 0.9
 
 
 def armorAspectDet(xLeft, yLeft, xRight, yRight, hLeft, hRight, wLeft, wRight):
     armorAspect = math.sqrt((yRight-yLeft)**2 + (xRight-xLeft)**2) / max(hLeft, hRight, wLeft, wRight)
-    #print("aspectDet: {0}".format(armorAspect))
+    print("aspectDet: {0}".format(armorAspect))
     return (7 >= armorAspect and armorAspect >= 5) or (3 >= armorAspect and armorAspect >= 2)
 
 
@@ -98,6 +94,7 @@ def armorDetect(lightGroup):
     对于lightDetect()函数返回的灯条列表
     找到符合条件的灯条组合
     """
+
     armorArea = []
     for left in range(len(lightGroup)):
         for right in range(left + 1, len(lightGroup)):
@@ -106,11 +103,15 @@ def armorDetect(lightGroup):
             if not isArmor(lightGroup[left], lightGroup[right]):
                 continue
             print("succesee".center(50, ">"))
-            xArmor = lightGroup[left][0][0]
-            yArmor = lightGroup[right][0][1]
-            wArmor = lightGroup[right][0][0] - lightGroup[left][0][0]
-            hArmor = max(lightGroup[right][1][1], lightGroup[left][1][1])
-            armor = [xArmor, yArmor, wArmor, hArmor]
+
+            lpixel = cv2.boxPoints(lightGroup[left])
+            rpixel = cv2.boxPoints(lightGroup[right])
+            xminp = sorted(np.append(lpixel[0:4, 0], rpixel[0:4, 0]))[0]
+            xmaxp = sorted(np.append(lpixel[0:4, 0], rpixel[0:4, 0]))[7]
+            yminp = sorted(np.append(lpixel[0:4, 1], rpixel[0:4, 1]))[0]
+            ymaxp = sorted(np.append(lpixel[0:4, 1], rpixel[0:4, 1]))[7]
+
+            armor = [xminp, yminp, xmaxp-xminp, ymaxp-yminp]
             armorArea.append(armor)
     return armorArea
 
@@ -123,10 +124,6 @@ def measurement(frame, e1):
 
 
 if __name__ == "__main__":
-
-    listCount = []
-    listFcount = []
-    success = 0
 
     try:
         cam = sys.argv[1]
@@ -147,7 +144,7 @@ if __name__ == "__main__":
 #---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-------------------------------
         if len(armor) > 0:
             x, y, w, h = armor[0]
-            cv2.rectangle(frame, (int(x), int(y-(h/2))), (int(x)+int(w), int(y)+int(h)), (0, 0, 255), 2)
+            cv2.rectangle(frame, (x, y), (x + w, y+h), (0, 0, 255), 2)
         measurement(frame, e1)
         key = cv2.waitKey(5)
         if key == ord("r") or key == ord("b"):
