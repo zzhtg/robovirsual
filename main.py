@@ -17,7 +17,6 @@ def lightAspectDet(rectangle, contour):
     w, h = rectangle[1]
     if w == 0 or h == 0: return
     if w > h:  w, h = h, w
-    
     return w/h > 0.05 and w/h < 0.5
 
 
@@ -71,12 +70,6 @@ def armorAspectDet(xLeft, yLeft, xRight, yRight, hLeft, hRight, wLeft, wRight):
     return (7 >= armorAspect and armorAspect >= 5.5) or (3.5 >= armorAspect and armorAspect >= 2)
 
 
-def size(wl, hl, wr, hr):
-    lsize = wl * hl
-    rsize = wr * hr
-    sizeDif = abs(lsize - rsize) / max(lsize, rsize)
-    return sizeDif < 0.3
-
 def isArmor(leftLight, rightLight):
     [xLeft, yLeft], [wLeft, hLeft], aLeft = leftLight[0], leftLight[1], leftLight[2]
     [xRight, yRight], [wRight, hRight], aRight = rightLight[0], rightLight[1], rightLight[2]
@@ -84,8 +77,7 @@ def isArmor(leftLight, rightLight):
         wLeft, hLeft = hLeft, wLeft
     if aRight == -90:
         wRight, hRight = hRight, wRight
-    return (size(wLeft, hLeft, wRight, hRight) and
-            parallelDet(aLeft, aRight) and 
+    return (parallelDet(aLeft, aRight) and 
             hightDifferenceDet(hLeft, hRight) and
             widthDifferenceDet(wLeft, wRight) and 
             armorAspectDet(xLeft, yLeft, xRight, yRight, hLeft, hRight, wLeft, wRight))
