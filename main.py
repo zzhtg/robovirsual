@@ -50,35 +50,56 @@ def lightDetect(image):
     return lightGroup
 
 
-def parallelDet(aLeft, aRight):
-    paralle = abs(abs(aLeft + 45) - abs(aRight + 45))
-    return paralle < 9
+
+def paralle(left, right):
+    global frame
+    [lx1, ly1], [lx2, ly2] = left[0], left[1]
+    [rx1, ry1], [rx2, ry2] = right[3], right[2]
+    cv2.line(frame, (lx1, ly1), (rx1, ry1), (255, 0, 0), 3)
+    cv2.line(frame, (lx2, ly2), (rx2, ry2), (255, 0, 0), 3)
+    lk = (ry2-ly1) / (rx2 - lx1)
+    rk = (ry2-ly2) / (rx2 - lx2)
+    print("lk: {0}\nrk: {1}".format(lk, rk))
+    paralle = abs((lk - rk) / (1 + lk*rk))
+    print("paralle :", paralle)
+    return paralle < 7
+
+
+def armorPixel(leftLight, rightLight):
+    lpixel = cv2.boxPoints(leftLight)
+    rpixel = cv2.boxPoints(rightLight)
+    x = sorted(np.append(lpixel[0:4, 0], rpixel[0:4, 0]))
+    y = sorted(np.append(lpixel[0:4, 1], rpixel[0:4, 1]))
+    if paralle(lpixel, rpixel):
+        return [x[0], y[0], x[7]-x[0], y[7]-y[0]]
 
 
 def hightDifferenceDet(hLeft, hRight):
     hightDif = abs(hLeft-hRight) / max(hLeft, hRight)
-    return  hightDif <= 0.9
+    print("hightDif: ", hightDif)
+    return  hightDif <= 0.15
 
 
 def widthDifferenceDet(wLeft, wRight):
     widthDif = abs(wLeft-wRight) / max(wLeft, wRight)
-    return widthDif <= 0.9
+    print("widthDif: ", widthDif)
+    return widthDif <= 0.55
 
 
 def armorAspectDet(xLeft, yLeft, xRight, yRight, hLeft, hRight, wLeft, wRight):
     armorAspect = math.sqrt((yRight-yLeft)**2 + (xRight-xLeft)**2) / max(hLeft, hRight, wLeft, wRight)
-    return (7 >= armorAspect and armorAspect >= 5.5) or (3.5 >= armorAspect and armorAspect >= 2)
+    print("armorAspect: ", armorAspect)
+    return (7 >= armorAspect and armorAspect >= 6) or (3 >= armorAspect and armorAspect >= 2)
 
 
 def isArmor(leftLight, rightLight):
-    [xLeft, yLeft], [wLeft, hLeft], aLeft = leftLight[0], leftLight[1], leftLight[2]
-    [xRight, yRight], [wRight, hRight], aRight = rightLight[0], rightLight[1], rightLight[2]
-    if aLeft == -90:
+    [xLeft, yLeft], [wLeft, hLeft] = leftLight[0], leftLight[1]
+    [xRight, yRight], [wRight, hRight] = rightLight[0], rightLight[1]
+    if wLeft > hLeft:
         wLeft, hLeft = hLeft, wLeft
-    if aRight == -90:
+    if wRight > hRight:
         wRight, hRight = hRight, wRight
-    return (parallelDet(aLeft, aRight) and 
-            hightDifferenceDet(hLeft, hRight) and
+    return (hightDifferenceDet(hLeft, hRight) and
             widthDifferenceDet(wLeft, wRight) and 
             armorAspectDet(xLeft, yLeft, xRight, yRight, hLeft, hRight, wLeft, wRight))
 
@@ -91,16 +112,10 @@ def armorDetect(lightGroup):
                 left, right = right, left
             if not isArmor(lightGroup[left], lightGroup[right]):
                 continue
-
-            lpixel = cv2.boxPoints(lightGroup[left])
-            rpixel = cv2.boxPoints(lightGroup[right])
-            xminp = sorted(np.append(lpixel[0:4, 0], rpixel[0:4, 0]))[0]
-            xmaxp = sorted(np.append(lpixel[0:4, 0], rpixel[0:4, 0]))[7]
-            yminp = sorted(np.append(lpixel[0:4, 1], rpixel[0:4, 1]))[0]
-            ymaxp = sorted(np.append(lpixel[0:4, 1], rpixel[0:4, 1]))[7]
-            
-            armor = [xminp, yminp, xmaxp-xminp, ymaxp-yminp]
-            armorArea.append(armor)
+            armor = armorPixel(lightGroup[left], lightGroup[right])
+            if armor != None:
+                armorArea.append(armor)
+            print(armor)
     return armorArea
 
 
@@ -132,6 +147,7 @@ if __name__ == "__main__":
         if len(armor) > 0:
             for x, y, w, h in armor:
                 cv2.rectangle(frame, (x, y), (x + w, y+h), (0, 0, 255), 2)
+                print("success".center(50, "-"))
         measurement(frame, e1)
         key = cv2.waitKey(5)
         if key == ord("r") or key == ord("b"):
