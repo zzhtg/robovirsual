@@ -23,19 +23,19 @@ def armorPixel(leftLight, rightLight):
 
 def hightDifferenceDet(hLeft, hRight):
     hightDif = abs(hLeft-hRight) / max(hLeft, hRight)
-    print("hightDif: ", hightDif)
+    #print("hightDif: ", hightDif)
     return  hightDif <= 0.15
 
 
 def widthDifferenceDet(wLeft, wRight):
     widthDif = abs(wLeft-wRight) / max(wLeft, wRight)
-    print("widthDif: ", widthDif)
+    #print("widthDif: ", widthDif)
     return widthDif <= 0.55
 
 
 def armorAspectDet(xLeft, yLeft, xRight, yRight, hLeft, hRight, wLeft, wRight):
     armorAspect = math.sqrt((yRight-yLeft)**2 + (xRight-xLeft)**2) / max(hLeft, hRight, wLeft, wRight)
-    print("armorAspect: ", armorAspect)
+    #print("armorAspect: ", armorAspect)
     return (7.5 >= armorAspect and armorAspect >= 6) or (3.5 >= armorAspect and armorAspect >= 2)
 
 

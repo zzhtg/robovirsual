@@ -19,7 +19,7 @@ def lightAspectDet(rectangle, contour):
 
 def aimColormean(lightArea, mask, mode):
     mean_val = cv2.mean(lightArea, mask)
-    print("mean_val: ", mean_val)
+    #print("mean_val: ", mean_val)
     if mode == ord("r"):
         meanVal = mean_val[2] > 200 and mean_val[2] > mean_val[0]
     if mode == ord("b"):
@@ -40,7 +40,7 @@ def lightDetect(image, mode):
         lightArea = cv2.bitwise_and(lightArea, lightArea, mask = mask)
         if not (lightAspectDet(lightRectangle, contour) and aimColormean(lightArea, mask, mode)):
             continue
-        cv2.drawContours(image, [contour], 0, (0, 255, 0), 2)
+        #cv2.drawContours(image, [contour], 0, (0, 255, 0), 2)
         lightGroup.append(lightRectangle)
     return lightGroup
 
