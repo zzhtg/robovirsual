@@ -14,14 +14,14 @@ def measurement(frame, e1):
 
 
 def main(cam):
-    naf = nar = nnf = nnr = 0
-    nsu = 0
-    asu = 0
+    nsu = asu = naf = nar = nnf = nnr = 0
     t = 20
+
     cap = cv2.VideoCapture(cam)
     cap.set(15, -5)
-    mode = 114
+    mode = 114  #114: red, 98: blue
     cv2.namedWindow("frame")
+
     while 1:
         naf += 1
         nnf += 1
@@ -42,17 +42,16 @@ def main(cam):
                 #print(x,y,w,h)
             nar += 1
             nnr += 1
-        if naf%t == 0:
+        if naf%t is 0:
             nsu = nnr / nnf
-            nnr = 0
-            nnf = 0
+            nnf = nnr = 0
         cv2.putText(frame, "intime:{0:0.2f}  alltime:{1:0.2f}".format(nsu, asu
             ), (250, 50), cv2.FONT_ITALIC, 0.8, (255, 255, 255), 2)
 #---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-------------------------------
-        key = cv2.waitKey(500)
-        if key == 114 or key == 98:
+        key = cv2.waitKey(1)
+        if key is 114 or key is 98:
             mode = key
-        if key == ord('q'):
+        if key is ord('q'):
             break
     cv2.destroyAllWindows()
     cap.release()

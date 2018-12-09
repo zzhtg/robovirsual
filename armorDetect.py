@@ -42,8 +42,10 @@ def armorAspectDet(xLeft, yLeft, xRight, yRight, hLeft, hRight, wLeft, wRight):
 def isArmor(leftLight, rightLight):
     [xLeft, yLeft], [wLeft, hLeft] = leftLight[0], leftLight[1]
     [xRight, yRight], [wRight, hRight] = rightLight[0], rightLight[1]
-    if wLeft > hLeft: wLeft, hLeft = hLeft, wLeft
-    if wRight > hRight: wRight, hRight = hRight, wRight
+    if wLeft > hLeft: 
+        wLeft, hLeft = hLeft, wLeft
+    if wRight > hRight: 
+        wRight, hRight = hRight, wRight
     return (hightDifferenceDet(hLeft, hRight) and
             widthDifferenceDet(wLeft, wRight) and 
             armorAspectDet(xLeft, yLeft, xRight, yRight, hLeft, hRight, wLeft, wRight))
@@ -51,14 +53,15 @@ def isArmor(leftLight, rightLight):
 
 def armorDetect(lightGroup):
     armorArea = []
-    for left in range(len(lightGroup)):
-        for right in range(left + 1, len(lightGroup)):
+    lens = len(lightGroup)
+    for left in range(lens):
+        for right in range(left + 1, lens):
             if lightGroup[left][0][0] > lightGroup[right][0][0]:
                 left, right = right, left
             if not isArmor(lightGroup[left], lightGroup[right]):
                 continue
             armor = armorPixel(lightGroup[left], lightGroup[right])
-            if armor != None:
+            if armor is not None:
                 armorArea.append(armor)
                 #print(armor)
     return armorArea

@@ -30,15 +30,11 @@ def aimColormean(lightArea, mask, mode):
 def lightDetect(image, mode):
     lightGroup = []
     readyDst = frameReady(image)
-    img, contours ,hierarchy = cv2.findContours(readyDst, 
-            cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    for contour in contours:
-
+    for contour in cv2.findContours(readyDst, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[1]:
         lightRectangle = cv2.minAreaRect(contour)
         x, y, w, h = cv2.boundingRect(contour)
         if not lightAspectDet(lightRectangle):
             continue
-
         mask = readyDst[y: y+h, x: x+w]
         lightArea = image[y: y+h, x: x+w]
         lightArea = cv2.bitwise_and(lightArea, lightArea, mask = mask)
