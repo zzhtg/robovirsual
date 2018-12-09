@@ -20,9 +20,9 @@ def main(cam):
     t = 20
     cap = cv2.VideoCapture(cam)
     cap.set(15, -5)
-    mode = ord("r")
+    mode = 114
     cv2.namedWindow("frame")
-    while cap.isOpened:
+    while 1:
         naf += 1
         nnf += 1
         asu = nar / naf
@@ -30,15 +30,16 @@ def main(cam):
         e1 = cv2.getTickCount()
         _, frame = cap.read()
         armor = armorDetect(lightDetect(frame, mode))
+        measurement(frame, e1)
 #---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-------------------------------
         if len(armor) > 0:
             for x, y, w, h in armor:
                 #cv2.rectangle(frame, (x, y), (x + w, y+h), (0, 0, 255), 2)
-                image = frame[int(y):int(y)+int(h), int(x):int(x)+int(w)]
+                image = frame[y:y+h, x:x+w]
                 image = cv2.resize(image, (300, 100))
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 cv2.imshow("image", image)
-                print(x,y,w,h)
+                #print(x,y,w,h)
             nar += 1
             nnr += 1
         if naf%t == 0:
@@ -47,13 +48,14 @@ def main(cam):
             nnf = 0
         cv2.putText(frame, "intime:{0:0.2f}  alltime:{1:0.2f}".format(nsu, asu
             ), (250, 50), cv2.FONT_ITALIC, 0.8, (255, 255, 255), 2)
-        measurement(frame, e1)
 #---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-------------------------------
-        key = cv2.waitKey(5)
-        if key == ord("r") or key == ord("b"):
+        key = cv2.waitKey(500)
+        if key == 114 or key == 98:
             mode = key
         if key == ord('q'):
             break
+    cv2.destroyAllWindows()
+    cap.release()
 
 
 if __name__ == "__main__":
@@ -63,5 +65,3 @@ if __name__ == "__main__":
     except:
         cam = 0
     main(cam)
-    cv2.destroyAllWindows()
-    cap.release()

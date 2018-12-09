@@ -18,7 +18,7 @@ def armorPixel(leftLight, rightLight):
     x = sorted(np.append(lpixel[0:4, 0], rpixel[0:4, 0]))
     y = sorted(np.append(lpixel[0:4, 1], rpixel[0:4, 1]))
     if paralle(lpixel, rpixel):
-        return [x[0], y[0], x[7]-x[0], y[7]-y[0]]
+        return [int(i) for i in [x[0], y[0], x[7]-x[0], y[7]-y[0]]]
 
 
 def hightDifferenceDet(hLeft, hRight):
