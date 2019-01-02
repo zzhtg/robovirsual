@@ -3,11 +3,11 @@ import numpy as np
 
 
 def frameReady(image):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    ret, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    ret, image = cv2.threshold(image, 150, 255, cv2.THRESH_BINARY)
     kernel = np.ones((5, 5), np.uint8)
-    readyDst = cv2.erode(cv2.dilate(thresh, kernel, iterations = 1), kernel, iterations = 1)
-    return readyDst
+    image = cv2.erode(cv2.dilate(image, kernel, iterations = 1), kernel, iterations = 1)
+    return image
 
 
 def lightAspectDet(rectangle):
