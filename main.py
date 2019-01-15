@@ -8,30 +8,37 @@ from measurement import *
 
 
 def main(cam):
+    '''
+    输入：cam(摄像头选取参数)
+    功能：主程序
+    输出：无
+    '''
     cap = cv2.VideoCapture(cam)
-    cap.set(15, -5)
-    mode = 114  #114: red, 98: blue
-    cv2.namedWindow("frame")
-    ns = [0, 0, 0, 0, 0, 0, 20]
+    cap.set(15, -3)
+    #cap.set(3, 1380)
+    armcolor = 114  #114: red, 98: blue
+    cv2.namedWindow("main")
+    count = {'perSucRatio':0, 'alSucRatio':0, 'alFrame':0, 
+            'alSuc':0, 'perFrame':0, 'perSuc':0, 'period':30}
 
     while cap.isOpened():
-        e1 = cv2.getTickCount()
+        t1 = cv2.getTickCount()
         _, frame = cap.read()
-        armor = armorDetect(lightDetect(frame, mode))
+        lightGroup = lightDetect(frame, armcolor)
+        armorPixel = armorDetect(frame, lightGroup)
 
-        naf = putMsg(frame, armor, ns)
-        measurement(frame, e1)
-
-        key = cv2.waitKey(1)
-        if key is 114 or key is 98:
-            mode = key
+        naf = putMsg(frame, armorPixel, count)
+        measurement(frame, t1)
+        key = cv2.waitKey(7)
+        if key is ord('r') or key is ord('b'):
+            armColor = key
         if key is ord('q'):
             break
-        if naf >= 100:
-            break
+#        if naf > 300:       #远程操控妙算按键失效，三百帧后自动退出
+#            break           #在电脑上使用的时候可以注释掉这两行代码
+
     cv2.destroyAllWindows()
     cap.release()
-
 
 if __name__ == "__main__":
     try:

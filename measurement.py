@@ -2,31 +2,40 @@ import cv2
 
 
 def measurement(frame, e1):
+    '''
+    输入：frame(当前帧）、t1（时间起点）
+    功能：添加FPS（Frames Per Second）信息并显示当前帧
+    输出：无
+    '''
     time = (cv2.getTickCount() - e1) / cv2.getTickFrequency()
     fps = "FPS:{0:0.2f}".format(1/time)
-    frame = cv2.putText(frame, fps, (50, 50), cv2.FONT_ITALIC, 0.8, (255, 255, 255), 2)
-    cv2.imshow("frame", frame)
-    #print(fps)
+    cv2.putText(frame, fps, (50, 50), cv2.FONT_ITALIC, 0.8, (255, 255, 255), 2)
+    cv2.imshow("main", frame)
     return 0
 
 
-def putMsg(frame, armor, ns):
-    ns[2] += 1
-    ns[4] += 1
-    ns[1] = ns[3] / ns[2]
+def putMsg(frame, armor, count):
+    '''
+    输入：frame(当前帧)、 armor(装甲列表)、count(计数成员字典)
+    功能：当前帧添加实时成功率与全过程成功率、画出装甲图像
+    输出：无
+    '''
+    count['alFrame'] += 1
+    count['perFrame'] += 1
+    count['alSucRatio'] = count['alSuc'] / count['alFrame']
     if len(armor) > 0:
         for x, y, w, h in armor:
-            cv2.rectangle(frame, (x, y), (x + w, y+h), (0, 0, 255), 2)
-            image = frame[y:y+h, x:x+w]
-            image = cv2.resize(image, (150, 50))
+            cv2.rectangle(frame, (x, y), (w, h), (0, 0, 255), 2)
+            image = cv2.resize(frame[y: h, x: w], (75, 25))
             image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            cv2.imshow("image", image)
+            cv2.imshow("armor", image)
             #print(x,y,w,h)
-        ns[3] += 1
-        ns[5] += 1
-    if ns[2]%ns[6] is 0:
-        ns[0]  = ns[5] / ns[4]
-        ns[4] = ns[5] = 0
-    cv2.putText(frame, "intime:{0:0.2f}  alltime:{1:0.2f}".format(
-        ns[0], ns[1]), (250, 50), cv2.FONT_ITALIC, 0.8, (255, 255, 255), 2)
-    return ns[2]
+        count['alSuc'] += 1
+        count['perSuc'] += 1
+    if count['alFrame'] % count['period'] is 0:
+        count['perSucRatio']  = count['perSuc'] / count['perFrame']
+        count['perFrame'] = count['perSuc'] = 0
+    font = cv2.FONT_ITALIC
+    massege = "intime:{0:0.2f}  alltime:{1:0.2f}".format(count['perSucRatio'], count['alSucRatio'])
+    cv2.putText(frame, massege, (250, 50), font, 0.8, (255, 255, 255), 2)
+    return count['alFrame']
