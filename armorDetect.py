@@ -9,7 +9,7 @@ def paralle(left, right):
     lk = (ry1-ly1) / (rx1 - lx1)
     rk = (ry2-ly2) / (rx2 - lx2)
     paralle = abs((rk - lk) / (1 + lk*rk))
-    return paralle < 0.05, paralle
+    return paralle < 0.02, paralle
 
 
 def armorPixel(leftLight, rightLight):
@@ -18,8 +18,8 @@ def armorPixel(leftLight, rightLight):
     功能：检查平行、获取装甲的左上角坐标以及右下角坐标
     输出：装甲左上角、右下角坐标（方便取出装甲图像）
     '''
-    lpixel = cv2.boxPoints(leftLight[0:3])
-    rpixel = cv2.boxPoints(rightLight[0:3])
+    lpixel = cv2.boxPoints(leftLight)
+    rpixel = cv2.boxPoints(rightLight)
     x = sorted(np.append(lpixel[0:4, 0], rpixel[0:4, 0]))
     y = sorted(np.append(lpixel[0:4, 1], rpixel[0:4, 1]))
     if paralle(lpixel, rpixel):
@@ -31,7 +31,7 @@ def lenthDifDet(lLeft, lRight):
     功能：检测当前灯条组合是否符合长度差距条件
     输出：True 或者 False 以及 长度宽度比 '''
     lenthDif = abs(lLeft-lRight) / max(lLeft, lRight)
-    return  lenthDif <= 0.23, lenthDif
+    return  lenthDif <= 0.36, lenthDif
 
 def widthDifDet(wLeft, wRight):
     '''
@@ -39,6 +39,8 @@ def widthDifDet(wLeft, wRight):
     功能：检测当前灯条组合是否符合宽度差距条件
     输出：True 或者 False 以及 宽度差距比
     '''
+    wLeft += 1
+    wRight += 1
     widthDif = abs(wLeft-wRight) / max(wLeft, wRight)
     return widthDif <= 0.68, widthDif
 
@@ -49,8 +51,7 @@ def armorAspectDet(xLeft, yLeft, xRight, yRight, lLeft, lRight, wLeft, wRight):
     输出：True 或者 False 以及 装甲横纵比
     '''
     armorAspect = math.sqrt((yRight-yLeft)**2 + (xRight-xLeft)**2) / max(lLeft, lRight, wLeft, wRight)
-    return ((7.5 >= armorAspect and armorAspect >= 6) or 
-            (3.5 >= armorAspect and armorAspect >= 1.9)), armorAspect
+    return (4.5 >= armorAspect and armorAspect >= 1.7), armorAspect
 
 def isArmor(frame, leftLight, rightLight):
     '''
@@ -70,19 +71,19 @@ def isArmor(frame, leftLight, rightLight):
     w_, widthDif = widthDifDet(wLeft, wRight)
     a_, armorAspect = armorAspectDet(xLeft, yLeft, xRight, yRight, lLeft, lRight, wLeft, wRight)
 
-    cv2.putText(frame, "{0:.1f} {1:.1f}".format(lLeft, wLeft), (
-        int(xLeft), int(yLeft) - k*4), cv2.FONT_ITALIC, 0.4, (0, 255, 0), 1)
-    cv2.putText(frame, "{0:.1f} {1:.1f}".format(lRight, wRight), (
-        int(xRight), int(yRight) - k*3), cv2.FONT_ITALIC, 0.4, (0, 255, 0), 1)
+    llendistance = (547.27 * 5.5) / (1 + lLeft)
+    rlendistance = (547.27 * 5.5) / (1 + lRight)
+
+#    cv2.putText(frame, "{0:.1f} {1:.1f}".format(lLeft, wLeft), ( int(xLeft), int(yLeft) - k*4), cv2.FONT_ITALIC, 0.4, (0, 255, 0), 1)
+    cv2.putText(frame, "{0:.1f}".format(llendistance), (int(xLeft), int(yLeft) - k*4), cv2.FONT_ITALIC, 0.4, (0, 255, 0), 1)
+#    cv2.putText(frame, "{0:.1f} {1:.1f}".format(lRight, wRight), (int(xRight), int(yRight) - k*3), cv2.FONT_ITALIC, 0.4, (0, 255, 0), 1)
+    cv2.putText(frame, "{0:.1f}".format(rlendistance), (int(xRight), int(yRight) - k*3), cv2.FONT_ITALIC, 0.4, (0, 255, 0), 1)
     if not l_:
-        cv2.putText(frame, "lenthDif:{0:.2f}".format(lenthDif), (
-            int(xLeft), int(yLeft) + k*2), cv2.FONT_ITALIC, 0.4, (0, 255, 0), 1)
+        cv2.putText(frame, "lenthDif:{0:.2f}".format(lenthDif), (int(xLeft), int(yLeft) + k*2), cv2.FONT_ITALIC, 0.4, (0, 255, 0), 1)
     if not w_:
-        cv2.putText(frame, "widthDif{0:.2f}".format(widthDif), (
-            int(xLeft), int(yLeft) + k*3), cv2.FONT_ITALIC, 0.4, (0, 255, 0), 1)
+        cv2.putText(frame, "widthDif{0:.2f}".format(widthDif), (int(xLeft), int(yLeft) + k*3), cv2.FONT_ITALIC, 0.4, (0, 255, 0), 1)
     if not a_:
-        cv2.putText(frame, "armorAspect{0:.2f}".format(armorAspect), (
-            int(xLeft), int(yLeft) + k*4), cv2.FONT_ITALIC, 0.4, (0, 255, 0), 1)
+        cv2.putText(frame, "armorAspect{0:.2f}".format(armorAspect), (int(xLeft), int(yLeft) + k*4), cv2.FONT_ITALIC, 0.4, (0, 255, 0), 1)
     return w_ and l_ and a_
 
 def armorDetect(frame, lightGroup):

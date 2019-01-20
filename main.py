@@ -14,9 +14,9 @@ def main(cam):
     输出：无
     '''
     cap = cv2.VideoCapture(cam)
-    cap.set(15, -3)
+    cap.set(15, -4)
     #cap.set(3, 1380)
-    armcolor = 114  #114: red, 98: blue
+    armcolor = ord('r')  #114: red, 98: blue
     cv2.namedWindow("main")
     count = {'perSucRatio':0, 'alSucRatio':0, 'alFrame':0, 
             'alSuc':0, 'perFrame':0, 'perSuc':0, 'period':30}
