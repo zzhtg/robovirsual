@@ -1,5 +1,6 @@
 import cv2
-
+import matplotlib.pyplot as plt
+import numpy as np
 
 def measurement(frame, e1):
     '''
@@ -7,12 +8,11 @@ def measurement(frame, e1):
     功能：添加FPS（Frames Per Second）信息并显示当前帧
     输出：无
     '''
-    time = (cv2.getTickCount() - e1) / cv2.getTickFrequency()
-    fps = "FPS:{0:0.2f}".format(1/time)
-    cv2.putText(frame, fps, (50, 50), cv2.FONT_ITALIC, 0.8, (255, 255, 255), 2)
+    fps = 1.0 / ((cv2.getTickCount() - e1) / cv2.getTickFrequency())
+    fpsstr = "FPS:{0:0.1f}".format(fps)
+    cv2.putText(frame, fpsstr, (50, 50), cv2.FONT_ITALIC, 0.8, (255, 255, 255), 2)
     cv2.imshow("main", frame)
-    return 0
-
+    return fps
 
 def putMsg(frame, armor, count):
     '''

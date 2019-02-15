@@ -14,12 +14,13 @@ def main(cam):
     输出：无
     '''
     cap = cv2.VideoCapture(cam)
-    cap.set(15, -4)
+    cap.set(15, -6)
     #cap.set(3, 1380)
     armcolor = ord('r')  #114: red, 98: blue
     cv2.namedWindow("main")
     count = {'perSucRatio':0, 'alSucRatio':0, 'alFrame':0, 
             'alSuc':0, 'perFrame':0, 'perSuc':0, 'period':30}
+    fps = []
 
     while cap.isOpened():
         t1 = cv2.getTickCount()
@@ -28,7 +29,7 @@ def main(cam):
         armorPixel = armorDetect(frame, lightGroup)
 
         naf = putMsg(frame, armorPixel, count)
-        measurement(frame, t1)
+        fps.append(measurement(frame, t1))
         key = cv2.waitKey(7)
         if key is ord('r') or key is ord('b'):
             armColor = key
@@ -37,6 +38,8 @@ def main(cam):
 #        if naf > 300:       #远程操控妙算按键失效，三百帧后自动退出
 #            break           #在电脑上使用的时候可以注释掉这两行代码
 
+    for n in fps:
+        print("fps:{0:0.1f}".format(n))
     cv2.destroyAllWindows()
     cap.release()
 
