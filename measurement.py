@@ -2,7 +2,7 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
-def measurement(frame, e1):
+def putFps(frame, e1):
     '''
     输入：frame(当前帧）、t1（时间起点）
     功能：添加FPS（Frames Per Second）信息并显示当前帧
@@ -26,7 +26,8 @@ def putMsg(frame, armor, count):
     if len(armor) > 0:
         for x, y, w, h in armor:
             cv2.rectangle(frame, (x, y), (w, h), (0, 0, 255), 2)
-            image = cv2.resize(frame[y: h, x: w], (75, 25))
+            x, y, w, h = [i+1 for i in [x, y, w, h]]
+            image = frame[y: h, x: w]
             image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             cv2.imshow("armor", image)
             #print(x,y,w,h)
@@ -39,3 +40,25 @@ def putMsg(frame, armor, count):
     massege = "intime:{0:0.2f}  alltime:{1:0.2f}".format(count['perSucRatio'], count['alSucRatio'])
     cv2.putText(frame, massege, (250, 50), font, 0.8, (255, 255, 255), 2)
     return count['alFrame']
+
+def FpsTimeHist(fps):
+    """
+    输入：fps(包含fps信息的列表)
+    功能：画出每帧对应的fps，显示执行过程当中最大、最小和平均帧率
+    输出：无
+    """
+    plt.figure(figsize = (20, 5))
+    plt.title("fps and times")
+    plt.xlabel("Times")
+    plt.ylabel("FPS")
+    plt.plot(fps)
+    plt.show()
+
+    fps.sort()
+    fps[0:] = fps[1:]
+    sumFps = 0
+    for num in fps:
+        sumFps += num
+    print("average fps = {0:0.1f}".format(sumFps / len(fps)))
+    print("max fps = {0:0.1f}".format(fps[len(fps) - 1]))
+    print("min fps = {0:0.1f}".format(fps[0]))

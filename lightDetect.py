@@ -27,7 +27,7 @@ def lightAspectDet(lightRectangle):
     if w > h:
         w, h = h, w
     aspect = w/h
-    return aspect < 0.4 and aspect > 0.06, aspect
+    return aspect < 0.3 and aspect > 0.06, aspect
 
 def aimColormean(lightArea, mask, armcolor):
     '''
