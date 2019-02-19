@@ -4,7 +4,7 @@ import numpy as np
 import sys
 from armorDetect import *
 from lightDetect import *
-from measurement import *
+from perfermance import *
 
 def main(cam):
     '''
