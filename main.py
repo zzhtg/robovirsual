@@ -1,3 +1,4 @@
+# coding=utf-8
 #/usr/bin/python3
 import cv2
 import numpy as np
@@ -13,11 +14,11 @@ def main(cam):
     输出：无
     '''
     fps = []
+    peferon = 1
     count = {'perSucRatio':0, 'alSucRatio':0, 'alFrame':0, 
             'alSuc':0, 'perFrame':0, 'perSuc':0, 'period':30}
 
     armcolor = ord('r')  #114: red, 98: blue
-    cv2.namedWindow("main")
     cap = cv2.VideoCapture(cam)
     cap.set(15, -6)
     #cap.set(3, 1380)
@@ -28,8 +29,9 @@ def main(cam):
         lightGroup = ld.lightDetect(frame, armcolor)
         armorPixel = ad.armorDetect(frame, lightGroup)
 
-        naf = pf.putMsg(frame, armorPixel, count) #打印信息
-        fps.append(pf.putFps(frame, t1))
+        if peferon:
+            naf = pf.putMsg(frame, armorPixel, count) #打印信息
+            fps.append(pf.putFps(frame, t1))
 
         key = cv2.waitKey(10)
         if key is ord('r') or key is ord('b'):
@@ -39,7 +41,7 @@ def main(cam):
 #        if naf > 400:       #远程操控妙算按键失效，三百帧后自动退出
 #            break           #在电脑上使用的时候可以注释掉这两行代码
 
-    if len(fps):    #打印信息
+    if peferon and len(fps):
         print(naf)
         pf.FpsTimeHist(fps)
 

@@ -1,5 +1,5 @@
+# coding=utf-8
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 
 def putFps(frame, e1):
@@ -46,13 +46,6 @@ def FpsTimeHist(fps):
     功能：画出每帧对应的fps，显示执行过程当中最大、最小和平均帧率
     输出：无
     """
-    plt.figure(figsize = (20, 5))
-    plt.title("fps and times")
-    plt.xlabel("Times")
-    plt.ylabel("FPS")
-    plt.plot(fps)
-    plt.show()
-
     fps.sort()
     fps[0:] = fps[1:]
     sumFps = 0
