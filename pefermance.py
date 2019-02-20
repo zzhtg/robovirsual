@@ -8,10 +8,7 @@ def putFps(frame, e1):
     功能：添加FPS（Frames Per Second）信息并显示当前帧
     输出：无
     '''
-    fps = 1.0 / ((cv2.getTickCount() - e1) / cv2.getTickFrequency())
-    fpsstr = "FPS:{0:0.1f}".format(fps)
-    cv2.putText(frame, fpsstr, (50, 50), cv2.FONT_ITALIC, 0.8, (255, 255, 255), 2)
-    return fps
+    return 1.0 / ((cv2.getTickCount() - e1) / cv2.getTickFrequency())
 
 def putMsg(frame, armor, count):
     '''
@@ -33,7 +30,7 @@ def putMsg(frame, armor, count):
     cv2.putText(frame, massege, (250, 50), font, 0.8, (255, 255, 255), 2)
     return count['alFrame']
 
-def FpsTimeHist(fps):
+def fpsCount(fps):
     """
     输入：fps(包含fps信息的列表)
     功能：画出每帧对应的fps，显示执行过程当中最大、最小和平均帧率

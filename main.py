@@ -13,9 +13,10 @@ def main(cam):
     功能：主程序
     输出：无
     '''
-    fps = []
     showimage = True
     showText = True
+    onminipc = False
+    fps = []
     count = {'perSucRatio':0, 'alSucRatio':0, 'alFrame':0, 
             'alSuc':0, 'perFrame':0, 'perSuc':0, 'period':30}
 
@@ -27,24 +28,26 @@ def main(cam):
     while cap.isOpened():
         t1 = cv2.getTickCount()
         _, frame = cap.read()
-        lightGroup = ld.lightDetect(frame, armcolor)
+        gray, lightGroup = ld.lightDetect(frame, armcolor)
         armorPixel = ad.armorDetect(frame, lightGroup)
 
         if showText:     #如果显示文本
             naf = pf.putMsg(frame, armorPixel, count) #打印信息
-            fps.append(pf.putFps(frame, t1))
+            nfps = pf.putFps(frame, t1)
+            fps.append(nfps)
+            for x, y, w, h in armorPixel:
+                print(x,y,w,h)
         if showimage:        #如果显示图片
-            cv2.imshowimage("main", frame)
+            cv2.imshow("main", frame)
+            cv2.imshow("gray", gray)
             if len(armorPixel) > 0:
-                for x, y, w, h in armor:
+                for x, y, w, h in armorPixel:
                     cv2.rectangle(frame, (x, y), (w, h), (0, 0, 255), 2)
                     x, y, w, h = [i+1 for i in [x, y, w, h]]
                     image = frame[y: h, x: w]
-                    cv2.imshowimage("armor", image)
-                    #print(x,y,w,h)
-        else:
-            if naf > 400:       #远程操控妙算按键失效，自动退出
-                break
+                    cv2.imshow("armor", image)
+        if onminipc and naf > 400:       #远程操控妙算按键失效，自动退出
+            break
 
         key = cv2.waitKey(1)
         if key is ord('r') or key is ord('b'):

@@ -13,7 +13,6 @@ def frameReady(image):
     ret, image = cv2.threshold(image, 150, 255, cv2.THRESH_BINARY)
     kernel = np.ones((5, 5), np.uint8)
     image = cv2.erode(cv2.dilate(image, kernel, iterations = 1), kernel, iterations = 1)
-    cv2.imshow("image", image)
     return image
 
 def lightAspectDet(lightRectangle):
@@ -77,5 +76,5 @@ def lightDetect(image, armcolor):
             continue
         #cv2.drawContours(image, [contour], 0, (0, 255, 0), 2)
         lightGroup.append(lightRectangle)
-    return lightGroup
+    return image, lightGroup
 
