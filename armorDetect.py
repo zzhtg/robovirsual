@@ -36,10 +36,22 @@ def paralle(p1, p2):
     功能：判断两点确定的直线是否平行
     输出：True or False ,斜率差值
     '''
-    lk = (p1[1][1]-p1[0][1]) / (p1[1][0] - p1[0][0])
-    rk = (p2[1][1]-p2[0][1]) / (p2[1][0] - p2[0][0])
+    [lx1, ly1], [lx2, ly2] = p1
+    [rx1, ry1], [rx2, ry2] = p2
+    lk = (ry1-ly1) / (rx1 - lx1)
+    rk = (ry2-ly2) / (rx2 - lx2)
     paralle = abs((rk - lk) / (1 + lk*rk))
-    return paralle < 0.04, paralle
+    return paralle < 0.03, paralle
+
+def lightDist(ll, lr):
+    '''
+    输入：左右灯条的像素长度
+    功能：计算摄像头到灯条的距离
+    输出：比较近的那个灯条的距离
+    '''
+    llendistance = (547.27 * 5.5) / (1 + ll)
+    rlendistance = (547.27 * 5.5) / (1 + lr)
+    return min(llendistance, rlendistance)
 
 def armorDetect(frame, lightGroup):
     '''
@@ -54,15 +66,15 @@ def armorDetect(frame, lightGroup):
         for right in range(left + 1, lens):
             if lightGroup[left][0][0] > lightGroup[right][0][0]:
                 left, right = right, left
+
             xL, yL, wL, lL = [j for i in lightGroup[left][0:2] for j in i]
             xR, yR, wR, lR = [j for i in lightGroup[right][0:2] for j in i]
+            #pf.putInfo(frame, int(xL), int(yL), lightDist(lL, lR), "lightDist")
             if wL > lL: 
                 wL, lL = lL, wL
             if wR > lR: 
                 wR, lR = lR, wR
-            #llendistance = (547.27 * 5.5) / (1 + lL)
-            #rlendistance = (547.27 * 5.5) / (1 + lR)
-            #pf.putInfo(frame, int(xL), int(yL), llendistance, rlendistance)
+
             l_, lenthDif = lenthDifDet(lL, lR)
             if not l_:
                 pf.putInfo(frame, int(xL), int(yL), lenthDif, "lenthDif")
@@ -83,6 +95,7 @@ def armorDetect(frame, lightGroup):
             if not p_:
                 pf.putInfo(frame, int(xL), int(yL), paraValue, "paraValue")
                 continue
+
             x = sorted(np.append(lpixel[0:4, 0], rpixel[0:4, 0]))
             y = sorted(np.append(lpixel[0:4, 1], rpixel[0:4, 1]))
             armor = [int(i) for i in [x[0], y[0], x[7], y[7]]]

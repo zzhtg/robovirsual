@@ -28,7 +28,6 @@ def putMsg(frame, armor, count):
             cv2.rectangle(frame, (x, y), (w, h), (0, 0, 255), 2)
             x, y, w, h = [i+1 for i in [x, y, w, h]]
             image = frame[y: h, x: w]
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             cv2.imshow("armor", image)
             #print(x,y,w,h)
         count['alSuc'] += 1
@@ -62,3 +61,7 @@ def FpsTimeHist(fps):
     print("average fps = {0:0.1f}".format(sumFps / len(fps)))
     print("max fps = {0:0.1f}".format(fps[len(fps) - 1]))
     print("min fps = {0:0.1f}".format(fps[0]))
+
+def putInfo(frame, x, y, *arg, font = cv2.FONT_ITALIC, k = 15):
+    for i, info in enumerate(arg):
+        cv2.putText(frame, "{0}".format(info), (x, y - k*(i+1)), font, 0.4, (0, 255, 0), 1)

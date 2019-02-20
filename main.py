@@ -2,9 +2,9 @@
 import cv2
 import numpy as np
 import sys
-from armorDetect import *
-from lightDetect import *
-from pefermance import *
+import armorDetect as ad
+import lightDetect as ld
+import pefermance as pf
 
 def main(cam):
     '''
@@ -25,11 +25,11 @@ def main(cam):
     while cap.isOpened():
         t1 = cv2.getTickCount()
         _, frame = cap.read()
-        lightGroup = lightDetect(frame, armcolor)
-        armorPixel = armorDetect(frame, lightGroup)
+        lightGroup = ld.lightDetect(frame, armcolor)
+        armorPixel = ad.armorDetect(frame, lightGroup)
 
-        naf = putMsg(frame, armorPixel, count) #打印信息
-        fps.append(putFps(frame, t1))
+        naf = pf.putMsg(frame, armorPixel, count) #打印信息
+        fps.append(pf.putFps(frame, t1))
 
         key = cv2.waitKey(10)
         if key is ord('r') or key is ord('b'):
@@ -41,7 +41,7 @@ def main(cam):
 
     if len(fps):    #打印信息
         print(naf)
-        FpsTimeHist(fps)
+        pf.FpsTimeHist(fps)
 
     cv2.destroyAllWindows()
     cap.release()
@@ -52,4 +52,7 @@ if __name__ == "__main__":
     except:
         cam = 0
 
-    main(cam)
+    try:
+        main(cam)
+    except:
+        main(cam)
