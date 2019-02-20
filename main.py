@@ -14,7 +14,8 @@ def main(cam):
     输出：无
     '''
     fps = []
-    peferon = 1
+    showimage = True
+    showText = True
     count = {'perSucRatio':0, 'alSucRatio':0, 'alFrame':0, 
             'alSuc':0, 'perFrame':0, 'perSuc':0, 'period':30}
 
@@ -29,24 +30,34 @@ def main(cam):
         lightGroup = ld.lightDetect(frame, armcolor)
         armorPixel = ad.armorDetect(frame, lightGroup)
 
-        if peferon:
+        if showText:     #如果显示文本
             naf = pf.putMsg(frame, armorPixel, count) #打印信息
             fps.append(pf.putFps(frame, t1))
+        if showimage:        #如果显示图片
+            cv2.imshowimage("main", frame)
+            if len(armorPixel) > 0:
+                for x, y, w, h in armor:
+                    cv2.rectangle(frame, (x, y), (w, h), (0, 0, 255), 2)
+                    x, y, w, h = [i+1 for i in [x, y, w, h]]
+                    image = frame[y: h, x: w]
+                    cv2.imshowimage("armor", image)
+                    #print(x,y,w,h)
+        else:
+            if naf > 400:       #远程操控妙算按键失效，自动退出
+                break
 
-        key = cv2.waitKey(10)
+        key = cv2.waitKey(1)
         if key is ord('r') or key is ord('b'):
             armColor = key
         if key is ord('q'):
             break
-#        if naf > 400:       #远程操控妙算按键失效，三百帧后自动退出
-#            break           #在电脑上使用的时候可以注释掉这两行代码
-
-    if peferon and len(fps):
-        print(naf)
-        pf.FpsTimeHist(fps)
 
     cv2.destroyAllWindows()
     cap.release()
+
+    if showText and len(fps):
+        print(naf)
+        pf.FpsTimeHist(fps)
 
 if __name__ == "__main__":
     try:

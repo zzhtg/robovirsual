@@ -11,7 +11,6 @@ def putFps(frame, e1):
     fps = 1.0 / ((cv2.getTickCount() - e1) / cv2.getTickFrequency())
     fpsstr = "FPS:{0:0.1f}".format(fps)
     cv2.putText(frame, fpsstr, (50, 50), cv2.FONT_ITALIC, 0.8, (255, 255, 255), 2)
-    cv2.imshow("main", frame)
     return fps
 
 def putMsg(frame, armor, count):
@@ -24,12 +23,6 @@ def putMsg(frame, armor, count):
     count['perFrame'] += 1
     count['alSucRatio'] = count['alSuc'] / count['alFrame']
     if len(armor) > 0:
-        for x, y, w, h in armor:
-            cv2.rectangle(frame, (x, y), (w, h), (0, 0, 255), 2)
-            x, y, w, h = [i+1 for i in [x, y, w, h]]
-            image = frame[y: h, x: w]
-            cv2.imshow("armor", image)
-            #print(x,y,w,h)
         count['alSuc'] += 1
         count['perSuc'] += 1
     if count['alFrame'] % count['period'] is 0:
@@ -55,6 +48,6 @@ def FpsTimeHist(fps):
     print("max fps = {0:0.1f}".format(fps[len(fps) - 1]))
     print("min fps = {0:0.1f}".format(fps[0]))
 
-def putInfo(frame, x, y, *arg, font = cv2.FONT_ITALIC, k = 15):
+def putInfo(frame, x, y, font = cv2.FONT_ITALIC, k = 15, *arg):
     for i, info in enumerate(arg):
         cv2.putText(frame, "{0}".format(info), (x, y - k*(i+1)), font, 0.4, (0, 255, 0), 1)
