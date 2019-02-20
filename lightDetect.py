@@ -53,7 +53,9 @@ def lightDetect(image, armcolor):
     lightGroup = []
     readyDst = frameReady(image)
     font = cv2.FONT_ITALIC
-
+#opencv 4.0.0 finContours返回轮廓和层级
+#opencv 3 finContours 返回图像、轮廓和层级
+#修改1 为 0即可
     for contour in cv2.findContours(readyDst, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[1]:
         lightRectangle = cv2.minAreaRect(contour)
         [x, y], [w, h] = lightRectangle[0], lightRectangle[1]
