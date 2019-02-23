@@ -60,7 +60,7 @@ def main(cam):
 
     if showText and len(fps):
         print(naf)
-        pf.FpsTimeHist(fps)
+        pf.fpsCount(fps)
 
 if __name__ == "__main__":
     try:
