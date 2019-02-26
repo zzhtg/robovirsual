@@ -38,15 +38,15 @@ def main(cam):
             for x, y, w, h in armorPixel:
                 print(x,y,w,h)
         if showimage:        #如果显示图片
-            cv2.imshow("main", frame)
-            cv2.imshow("gray", gray)
             if len(armorPixel) > 0:
                 for x, y, w, h in armorPixel:
                     cv2.rectangle(frame, (x, y), (w, h), (0, 0, 255), 2)
                     x, y, w, h = [i+1 for i in [x, y, w, h]]
                     image = frame[y: h, x: w]
                     cv2.imshow("armor", image)
-        if onminipc and naf > 400:       #远程操控妙算按键失效，自动退出
+            cv2.imshow("main", frame)
+            cv2.imshow("gray", gray)
+        if onminipc and naf > 200:       #远程操控妙算按键失效，自动退出
             break
 
         key = cv2.waitKey(1)
