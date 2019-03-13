@@ -7,18 +7,20 @@ import armorDetect as ad
 import lightDetect as ld
 import pefermance as pf
 
+#调试的控制
+showimage = True
+showText = True
+onminipc = False
+fps = []
+count = {'perSucRatio':0, 'alSucRatio':0, 'alFrame':0, 
+        'alSuc':0, 'perFrame':0, 'perSuc':0, 'period':30}
+
 def main(cam):
     '''
     输入：cam(摄像头选取参数)
     功能：主程序
     输出：无
     '''
-    showimage = True
-    showText = True
-    onminipc = False
-    fps = []
-    count = {'perSucRatio':0, 'alSucRatio':0, 'alFrame':0, 
-            'alSuc':0, 'perFrame':0, 'perSuc':0, 'period':30}
 
     armcolor = ord('r')  #114: red, 98: blue
     cap = cv2.VideoCapture(cam)
