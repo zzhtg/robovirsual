@@ -56,7 +56,7 @@ def lightDetect(image, armcolor):
 #opencv 4.0.0 finContours返回轮廓和层级
 #opencv 3 finContours 返回图像、轮廓和层级
 #修改1 为 0即可
-    for contour in cv2.findContours(readyDst, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[1]:
+    for contour in cv2.findContours(readyDst, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[0]:
         lightRectangle = cv2.minAreaRect(contour)
         [x, y], [w, h] = lightRectangle[0], lightRectangle[1]
         l_, aspect = lightAspectDet(lightRectangle)
@@ -76,5 +76,5 @@ def lightDetect(image, armcolor):
             continue
         #cv2.drawContours(image, [contour], 0, (0, 255, 0), 2)
         lightGroup.append(lightRectangle)
-    return image, lightGroup
+    return readyDst, lightGroup
 

@@ -68,7 +68,4 @@ if __name__ == "__main__":
     except:
         cam = 0
 
-    try:
-        main(cam)
-    except:
-        main(cam)
+    main(cam)
