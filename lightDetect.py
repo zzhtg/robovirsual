@@ -76,5 +76,5 @@ def lightDetect(image, armcolor):
             continue
         #cv2.drawContours(image, [contour], 0, (0, 255, 0), 2)
         lightGroup.append(lightRectangle)
-    return readyDst, lightGroup
+    return image, lightGroup
 

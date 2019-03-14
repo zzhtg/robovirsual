@@ -26,7 +26,8 @@ def putMsg(frame, armor, count):
         count['perSucRatio']  = count['perSuc'] / count['perFrame']
         count['perFrame'] = count['perSuc'] = 0
     font = cv2.FONT_ITALIC
-    massege = "intime:{0:0.2f}  alltime:{1:0.2f}".format(count['perSucRatio'], count['alSucRatio'])
+    fps = putFps(frame, e1)
+    massege = "fps:{0:0.2f} intime:{0:0.2f}  alltime:{1:0.2f}".format(fps, count['perSucRatio'], count['alSucRatio'])
     cv2.putText(frame, massege, (250, 50), font, 0.8, (255, 255, 255), 2)
     return count['alFrame']
 
