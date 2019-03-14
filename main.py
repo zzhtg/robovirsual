@@ -9,6 +9,14 @@ import pefermance as pf
 import KalmanPredict as kp
 # import threading           # 多线程
 # import SerialSend as ss    # 串口通信
+
+showimage = True
+showText = True
+onminipc = False
+fps = []        
+count = {'perSucRatio':0, 'alSucRatio':0, 'alFrame':0, 
+    'alSuc':0, 'perFrame':0, 'perSuc':0, 'period':30}
+
 def main(cam):
     # '''
     #     输入：cam(摄像头选取参数)
@@ -27,13 +35,7 @@ def main(cam):
     #     rec = ser.readline()
     #     print(rec)
     #     ser.close()
-    
-    showimage = True
-    showText = True
-    onminipc = False
-    fps = []        
-    count = {'perSucRatio':0, 'alSucRatio':0, 'alFrame':0, 
-            'alSuc':0, 'perFrame':0, 'perSuc':0, 'period':30}
+
     armcolor = ord('r')  #114: red, 98: blue
     cap = cv2.VideoCapture(cam)
     cap.set(15, -6)
@@ -61,12 +63,11 @@ def main(cam):
                     x, y, w, h = [i+1 for i in [x, y, w, h]]
                     image = frame[y: h, x: w]
                     cv2.imshow("armor", image)
-        cv2.imshow("frame", frame)
-        if onminipc and naf > 400:       #远程操控妙算按键失效，自动退出
+            cv2.imshow("frame", frame)
+        if onminipc and naf > 200:       #远程操控妙算按键失效，自动退出
             break
 
-        key = cv2.waitKey(1)
-
+        key = cv2.waitKey(5)
         if key is ord('r') or key is ord('b'):
             armColor = key
         if key is ord('q'):
@@ -84,7 +85,4 @@ if __name__ == "__main__":
     except:
         cam = 0
 
-    try:
-        main(cam)
-    except:
-        main(cam)
+    main(cam)
