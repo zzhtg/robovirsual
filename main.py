@@ -10,9 +10,9 @@ import KalmanPredict as kp
 # import threading           # 多线程
 # import SerialSend as ss    # 串口通信
 
-showimage = True
+showimage = False
 showText = True
-onminipc = False
+onminipc = True
 fps = []        
 count = {'perSucRatio':0, 'alSucRatio':0, 'alFrame':0, 
     'alSuc':0, 'perFrame':0, 'perSuc':0, 'period':30}
@@ -50,7 +50,7 @@ def main(cam):
         armorPixel = ad.armorDetect(frame, lightGroup)
 
         if showText:     #如果显示文本
-            naf = pf.putMsg(frame, armorPixel, count) #打印信息
+            naf = pf.putMsg(frame, t1, armorPixel, count) #打印信息
             nfps = pf.putFps(frame, t1)
             fps.append(nfps)
             if len(armorPixel) > 0:

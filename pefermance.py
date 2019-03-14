@@ -10,7 +10,7 @@ def putFps(frame, e1):
     '''
     return 1.0 / ((cv2.getTickCount() - e1) / cv2.getTickFrequency())
 
-def putMsg(frame, armor, count):
+def putMsg(frame, e1, armor, count):
     '''
     输入：frame(当前帧)、 armor(装甲列表)、count(计数成员字典)
     功能：当前帧添加实时成功率与全过程成功率、画出装甲图像
