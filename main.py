@@ -38,7 +38,6 @@ def main(cam):
 
     armcolor = ord('r')  #114: red, 98: blue
     cap = cv2.VideoCapture(cam)
-    cap.set(15, -6)
     #cap.set(3, 1380)
     Matrix, kalman = kp.Kalman_init()
     error = []
