@@ -1,11 +1,15 @@
 #install cuda and opencv-tegra
+cd ~/Downloads
 wget --no-check-certificate http://developer.download.nvidia.com/embedded/OpenCV/L4T_21.2/libopencv4tegra-repo_l4t-r21_2.4.10.1_armhf.deb
+wget --no-check-certificate http://developer.download.nvidia.com/embedded/L4T/r21_Release_v3.0/cuda-repo-l4t-r21.3-6-5-prod_6.5-42_armhf.deb
 wget --no-check-certificate http://developer.nvidia.com/embedded/dlc/cuda-7-toolkit-l4t-23-2
 dpkg -i ~/Downloads/cuda-7-toolkit-l4t-23-2
 dpkg -i libopencv4tegra-repo_l4t-r21_2.4.10.1_armhf.deb
+dpkg -i cuda-repo-l4t-r21.3-6-5-prod_6.5-42_armhf.deb
 apt-add-repository universe
 apt-get update
 sudo apt-get install git \
+	cuda-toolkit-6-5 \
 	cuda-toolkit-7-0 \
 	libopencv4tegra \
 	libopencv4tegra-dev \
@@ -54,4 +58,4 @@ cmake -D BUILD_opencv_python3=YES -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_P
 make -j4
 make install
 
-pip3 insatll pyserial
+sudo pip3 install pyserial
