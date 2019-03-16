@@ -4,6 +4,12 @@ import serial.tools.list_ports
 import binascii
 
 MODE = {'PITCH': 0x11, 'YAW': 0x12} # choose which Axis of Stm32 Robocloud to send
+def Serial_Send(ser, raw_pitch, raw_yaw):
+    Msg = Process(raw_pitch, raw_yaw)
+    ser.write(Msg.encode('ascii'))
+    Text_Send = ("You have sent", ord(Msg[0]), Msg[1:3], ord(Msg[4]), Msg[5:-2], ord(Msg[-1]), 'to the serial\n')
+    Text_Read = ser.readline()
+    return Text_Send, Text_Read
 
 def Serial_init(boudrate, Timeout):
     # Get A initial Serial, or return a zero-value and exit python
@@ -40,15 +46,17 @@ def Process(raw_pitch, raw_yaw):
 if(__name__ == "__main__"):
     ser = Serial_init(115200, 1)
     if(ser == 0):
-        print("Now Exiting...")
-        exit(0)
+        print("Caution: Serial Not Found!") # print caution
     else:
-        raw_pitch = input("Please input the pitch number: \n")
-        raw_yaw = input("Please input the yaw number: \n")
-        Msg = Process(raw_pitch, raw_yaw)
-        print("You have sent", ord(Msg[0]), Msg[1:3], ord(Msg[4]), Msg[5:-2], ord(Msg[-1]), 'to the serial\n')
-        ser.write(Msg.encode('ascii'))
-        rec = ser.readline()
-        print(rec)
+        while(1):
+            raw_pitch = input("Please input the pitch number: \n")
+            raw_yaw = input("Please input the yaw number: \n")
+            if(raw_pitch == 'q' or raw_yaw == 'q'):
+                break;
+            Msg = Process(raw_pitch, raw_yaw)
+            print("You have sent", ord(Msg[0]), Msg[1:3], ord(Msg[4]), Msg[5:-2], ord(Msg[-1]), 'to the serial\n')
+            ser.write(Msg.encode('ascii'))
+            rec = ser.readline()
+            print(rec)
         ser.close()
     

@@ -8,11 +8,11 @@ import lightDetect as ld
 import pefermance as pf
 import KalmanPredict as kp
 # import threading           # 多线程
-# import SerialSend as ss    # 串口通信
+import SerialSend as ss    # 串口通信
 
-showimage = False
+showimage = True
 showText = True
-onminipc = True
+onminipc = False
 fps = []        
 count = {'perSucRatio':0, 'alSucRatio':0, 'alFrame':0, 
     'alSuc':0, 'perFrame':0, 'perSuc':0, 'period':30}
@@ -23,19 +23,11 @@ def main(cam):
     #     功能：主程序
     #     输出：无
     #         '''
-    # ser = ss.Serial_init(115200, 1) # get a serial item, first arg is the boudrate, and the second is timeout
-    # if(ser == 0):          # if not an existed Serial object 
-    #     print("Caution: Serial Not Found!") # print caution
-    # else:
-    #     global raw_pitch
-    #     global raw_yaw
-    #     Msg = Process(raw_pitch, raw_yaw)
-    #     print("You have sent", ord(Msg[0]), Msg[1:3], ord(Msg[4]), Msg[5:-2], ord(Msg[-1]), 'to the serial\n')
-    #     ser.write(Msg.encode('ascii'))
-    #     rec = ser.readline()
-    #     print(rec)
-    #     ser.close()
-
+    raw_pitch = 0
+    raw_yaw = 0
+    ser = ss.Serial_init(115200, 1) # get a serial item, first arg is the boudrate, and the second is timeout
+    if(ser == 0):          # if not an existed Serial object 
+        print("Caution: Serial Not Found!") # print caution
     armcolor = ord('r')  #114: red, 98: blue
     cap = cv2.VideoCapture(cam)
     #cap.set(3, 1380)
@@ -55,6 +47,9 @@ def main(cam):
             if len(armorPixel) > 0:
                 x, y, w, h = armorPixel[0]
                 Matrix, error, real_error = kp.Predict(Matrix, kalman, error, real_error, frame, x, y, w, h)
+                print("x = %d, y = %d"%(x, y))
+                Text_Send, Text_Read = ss.Serial_Send(ser, x, y)
+                print("Send:%s\n%s"%(Text_Send, Text_Read))
         if showimage:        #如果显示图片
             if len(armorPixel) > 0:
                 for x, y, w, h in armorPixel:
@@ -73,8 +68,8 @@ def main(cam):
             break
 
     cv2.destroyAllWindows()
-    cap.release()
-
+    cap.release() # 摄像头关闭
+    ser.close()   # 串口关闭
     if showText and len(fps):
         print(naf)
 
