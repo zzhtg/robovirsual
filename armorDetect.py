@@ -42,7 +42,7 @@ def paralle(p1, p2):
     lk = (ry1-ly1) / (rx1 - lx1)
     rk = (ry2-ly2) / (rx2 - lx2)
     paralle = abs((rk - lk) / (1 + lk*rk))
-    return paralle < 0.03, paralle
+    return paralle < 0.09, paralle
 
 def lightDist(ll, lr):
     '''
@@ -78,15 +78,15 @@ def armorDetect(frame, lightGroup):
 
             l_, lenthDif = lenthDifDet(lL, lR)
             if not l_:
-                pf.putInfo(frame, int(xL), int(yL), lenthDif, "lenthDif")
+                print("lenthDif", lenthDif)
                 continue
             w_, widthDif = widthDifDet(wL, wR)
             if not w_:
-                pf.putInfo(frame, int(xL), int(yL), widthDif, "widthDif")
+                print("widthDif", widthDif)
                 continue
             a_, armorAspect = armorAspectDet(xL, yL, xR, yR, lL, lR, wL, wR)
             if not a_:
-                pf.putInfo(frame, int(xL), int(yL), armorAspect, "armorAspect")
+                print("armorAspect", armorAspect)
                 continue
             lpixel = cv2.boxPoints(lightGroup[left])
             rpixel = cv2.boxPoints(lightGroup[right])
@@ -94,7 +94,7 @@ def armorDetect(frame, lightGroup):
             p_, paraValue = paralle([lpixel[0], lpixel[2]], 
                                     [rpixel[0], rpixel[2]])
             if not p_:
-                pf.putInfo(frame, int(xL), int(yL), paraValue, "paraValue")
+                print("paraValue", paraValue)
                 continue
 
             x = sorted(np.append(lpixel[0:4, 0], rpixel[0:4, 0]))
