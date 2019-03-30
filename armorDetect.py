@@ -42,7 +42,7 @@ def paralle(p1, p2):
     lk = (ry1-ly1) / (rx1 - lx1)
     rk = (ry2-ly2) / (rx2 - lx2)
     paralle = abs((rk - lk) / (1 + lk*rk))
-    return paralle < 0.09, paralle
+    return paralle < 0.15, paralle
 
 def lightDist(ll, lr):
     '''
