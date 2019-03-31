@@ -25,9 +25,9 @@ def Predict(Matrix, kalman, error, real_error, frame, x1, y1, x2, y2):
     lpx, lpy = last_pre[0], last_pre[1]  # last predict
     cmx, cmy = current_mes[0], current_mes[1]  # current measure
     cpx, cpy = current_pre[0], current_pre[1]  # current predict
-    print("实际值: x= %f,y= %f" % (cpx, cmy))
-    print("预测值: x= %f,y= %f" % (cpx, cpy))
-    print("误差：x= %f, y= %f" % (abs(cpx - cmx) / cmx, abs(cpy - cmy) / cmy))
+    # print("实际值: x= %f,y= %f" % (cpx, cmy))
+    # print("预测值: x= %f,y= %f" % (cpx, cpy))
+    # print("误差：x= %f, y= %f" % (abs(cpx - cmx) / cmx, abs(cpy - cmy) / cmy))
     error.append(np.sqrt(cpx * cpx + cpy * cpy))
     real_error.append(np.sqrt(cmx * cmx + cmy * cmy))
     # if(len(error) >= 100):

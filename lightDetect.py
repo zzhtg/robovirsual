@@ -36,12 +36,10 @@ def aimColormean(lightArea, mask, armcolor):
     输出：meanVal(True 或者 False)、mean_val(颜色空间平均值)
     '''
     mean_val = cv2.mean(lightArea, mask)
-    #print("mean_val: ", mean_val)
-    print(armcolor)
     if armcolor is 114:
-        meanVal = (60 <= mean_val[0] <= 110 and
-                   170 <= mean_val[1] <= 210 and
-                   220 <= mean_val[2] <= 255)
+        meanVal = (60 <= mean_val[0] <= 160 and
+                   170 <= mean_val[1] <= 220 and
+                   240 <= mean_val[2] <= 255)
     if armcolor is 98:
         meanVal = (240 <= mean_val[0] <= 255 and
                    170 <= mean_val[1] <= 250 and
@@ -74,12 +72,11 @@ def lightDetect(image, armcolor):
         mask = readyDst[y: y+h, x: x+w]
         lightArea = cv2.bitwise_and(lightArea, lightArea, mask = mask)
         c_, mean_val = aimColormean(lightArea, mask, armcolor)
-        massege = "mean_val{0:.0f},{1:.0f},{2:.0f}".format(mean_val[0], mean_val[1], mean_val[2])
-        cv2.putText(image, massege, (x, y-15), font, 0.4, (0, 255, 0), 1)
         if not c_:
-            print(massege)
+            massege = "mean_val{0:.0f},{1:.0f},{2:.0f}".format(mean_val[0], mean_val[1], mean_val[2])
+            cv2.putText(image, massege, (x, y-15), font, 0.4, (0, 255, 0), 1)
             continue
         #cv2.drawContours(image, [contour], 0, (0, 255, 0), 2)
         lightGroup.append(lightRectangle)
-    return image, lightGroup
+    return readyDst, lightGroup
 

@@ -116,7 +116,7 @@ def armorDetect(frame, lightGroup):
     '''
     输入：lightGroup（可能是灯条的矩形最小边界拟合信息）
     功能：一一对比矩形、找到可能的灯条组合作为装甲
-    输出：armorArea（可能是装甲的矩形【长宽、左上角坐标】的列表）
+    输出：armorArea（可能是装甲的矩形【长宽、左上角坐标,左右灯条长宽平均值】的列表）
     '''
     armorArea = []
 
@@ -163,7 +163,7 @@ def armorDetect(frame, lightGroup):
             x = sorted(np.append(lpixel[0:4, 0], rpixel[0:4, 0]))
             y = sorted(np.append(lpixel[0:4, 1], rpixel[0:4, 1]))
 
-            armor = [int(i) for i in [x[0], y[0], x[7], y[7]]]
+            armor = [int(i) for i in [x[0], y[0], x[7], y[7], (wL+wR)/2, (lL+lR)/2]]
             if armor is not None:
                 armorArea.append(armor)
     return armorArea

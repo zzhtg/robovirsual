@@ -34,6 +34,7 @@ def main(cam):
     while cap.isOpened():
         t1 = cv2.getTickCount()
         _, frame = cap.read()
+        show = frame.copy()
         gray, lightGroup = ld.lightDetect(frame, armcolor)
         armorPixel = ad.armorDetect(frame, lightGroup)
 
@@ -42,20 +43,18 @@ def main(cam):
             nfps = pf.putFps(frame, t1)
             fps.append(nfps)
             if len(armorPixel) > 0:
-                x, y, w, h = armorPixel[0]
+                x, y, w, h = armorPixel[0][0:4]
                 Matrix, error, real_error = kp.Predict(Matrix, kalman, error, real_error, frame, x, y, w, h)
                 print("x = %d, y = %d"%(x, y))
         if showimage:        
-            if len(armorPixel) > 0:
-                for x, y, w, h in armorPixel:
-                    cv2.rectangle(frame, (x, y), (w, h), (0, 0, 255), 2)
-##                    x, y, w, h = [i+1 for i in [x, y, w, h]]
-##                    col = 2*y-h
-##                    row = 2*h-y
-##                    image = frame[col: row, x: w]
-##                    row, col, _ = image.shape
-##                    image = cv2.resize(image, (col*2, row*2))
-##                    cv2.imshow("armor", image)
+            if len(armorPixel):
+                for [a, b, x, y, w, h] in armorPixel:
+                    armor = show[b: y, a: x]
+                    digit = show[int((b+y)/2 - h): int((b+y)/2 + h), int((a+x)/2 - h): int((a+x)/2 + h)]
+                    digit = cv2.cvtColor(digit, cv2.COLOR_BGR2GRAY)
+                    _, digit = cv2.threshold(digit, 10, 255, cv2.THRESH_BINARY)
+                    cv2.imshow("digit", digit)
+
             cv2.imshow("frame", frame)
         if onminipc and naf > 200:       #远程操控妙算按键失效，自动退出
             break
@@ -75,6 +74,6 @@ if __name__ == "__main__":
     try:
         cam = sys.argv[1]
     except:
-        cam = 0
+        cam = "/dev/video2"
 
     main(cam)
