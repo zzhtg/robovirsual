@@ -63,8 +63,8 @@ def lightDetect(image, armcolor):
         [x, y], [w, h] = lightRectangle[0], lightRectangle[1]
         l_, aspect = lightAspectDet(lightRectangle)
         if not l_:
-            #aspectMassege = "aspect{0:.1f}-{1:.1f}-{2:.1f}".format(aspect, w, h)
-            #cv2.putText(image, aspectMassege, (int(x), int(y)), font, 0.4, (0, 255, 0), 1)
+            # aspectMassege = "aspect{0:.1f}-{1:.1f}-{2:.1f}".format(aspect, w, h)
+            # cv2.putText(image, aspectMassege, (int(x), int(y)), font, 0.4, (0, 255, 0), 1)
             continue
 
         x, y, w, h = cv2.boundingRect(contour)
@@ -73,10 +73,9 @@ def lightDetect(image, armcolor):
         lightArea = cv2.bitwise_and(lightArea, lightArea, mask = mask)
         c_, mean_val = aimColormean(lightArea, mask, armcolor)
         if not c_:
-            massege = "mean_val{0:.0f},{1:.0f},{2:.0f}".format(mean_val[0], mean_val[1], mean_val[2])
-            cv2.putText(image, massege, (x, y-15), font, 0.4, (0, 255, 0), 1)
+            # massege = "mean_val{0:.0f},{1:.0f},{2:.0f}".format(mean_val[0], mean_val[1], mean_val[2])
+            # cv2.putText(image, massege, (x, y-15), font, 0.4, (0, 255, 0), 1)
             continue
-        #cv2.drawContours(image, [contour], 0, (0, 255, 0), 2)
         lightGroup.append(lightRectangle)
     return readyDst, lightGroup
 

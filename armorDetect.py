@@ -128,7 +128,6 @@ def armorDetect(frame, lightGroup):
             # print(lightGroup) #debug
             xL, yL, wL, lL = [j for i in lightGroup[left][0:2] for j in i]
             xR, yR, wR, lR = [j for i in lightGroup[right][0:2] for j in i]
-            #pf.putInfo(frame, int(xL), int(yL), lightDist(lL, lR), "lightDist")
             if wL > lL: 
                 wL, lL = lL, wL
             if wR > lR: 
@@ -136,15 +135,12 @@ def armorDetect(frame, lightGroup):
 
             l_, lenthDif = lenthDifDet(lL, lR) # 长度差距判断：两灯条的长度差 / 长一点的那个长度 < 36%
             if not l_:
-                pf.putInfo(frame, int(xL), int(yL), lenthDif, "lenthDif")
                 continue
             w_, widthDif = widthDifDet(wL, wR) # 宽度差距判断：两灯条的宽度差 / 长一点的那个长度 < 68%
             if not w_:
-                pf.putInfo(frame, int(xL), int(yL), widthDif, "widthDif")
                 continue
             a_, armorAspect = armorAspectDet(xL, yL, xR, yR, lL, lR, wL, wR) # 横纵比判断：1.7~4.5
             if not a_:
-                pf.putInfo(frame, int(xL), int(yL), armorAspect, "armorAspect")
                 continue
             lpixel = cv2.boxPoints(lightGroup[left]) # 左灯条的位置信息， 旋转矩形拟合
             rpixel = cv2.boxPoints(lightGroup[right])
@@ -152,12 +148,9 @@ def armorDetect(frame, lightGroup):
             p_, paraValue = paralle([lpixel[0], lpixel[2]], # 平行判断：< 0.3
                                     [rpixel[0], rpixel[2]])
             if not p_:
-                pf.putInfo(frame, int(xL), int(yL), paraValue, "paraValue")
                 continue
-
             o_, orthoLValue, orthoRValue = ortho(frame, lpixel, rpixel)# 垂直判断：< 0.9
             if not o_:
-                # pf.putInfo(frame, int(xL), int(yL), paraValue, "paraValue")
                 continue
 
             x = sorted(np.append(lpixel[0:4, 0], rpixel[0:4, 0]))
@@ -166,4 +159,4 @@ def armorDetect(frame, lightGroup):
             armor = [int(i) for i in [x[0], y[0], x[7], y[7], (wL+wR)/2, (lL+lR)/2]]
             if armor is not None:
                 armorArea.append(armor)
-    return armorArea
+                return armorArea

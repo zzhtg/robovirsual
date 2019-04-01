@@ -1,6 +1,7 @@
 # coding=utf-8
 import cv2
 import numpy as np
+import KalmanPredict as kp
 
 def putFps(frame, e1):
     '''
@@ -10,7 +11,7 @@ def putFps(frame, e1):
     '''
     return 1.0 / ((cv2.getTickCount() - e1) / cv2.getTickFrequency())
 
-def putMsg(frame, e1, armor, count):
+def putFrameSuccess(frame, e1, armor, count):
     '''
     输入：frame(当前帧)、 armor(装甲列表)、count(计数成员字典)
     功能：当前帧添加实时成功率与全过程成功率、画出装甲图像
@@ -19,7 +20,7 @@ def putMsg(frame, e1, armor, count):
     count['alFrame'] += 1
     count['perFrame'] += 1
     count['alSucRatio'] = count['alSuc'] / count['alFrame']
-    if len(armor) > 0:
+    if armor:
         count['alSuc'] += 1
         count['perSuc'] += 1
     if count['alFrame'] % count['period'] is 0:
@@ -46,6 +47,14 @@ def fpsCount(fps):
     print("max fps = {0:0.1f}".format(fps[len(fps) - 1]))
     print("min fps = {0:0.1f}".format(fps[0]))
 
-def putInfo(frame, x, y, font = cv2.FONT_ITALIC, k = 15, *arg):
-    for i, info in enumerate(arg):
-        cv2.putText(frame, "{0}".format(info), (x, y - k*(i+1)), font, 0.4, (0, 255, 0), 1)
+
+def showtext(frame, t1, armorPixel, count, fps):
+    nfps = putFps(frame, t1)
+    fps.append(nfps)
+
+def showkalman(frame, armorPixel, Matrix, kalman, error, real_error):
+    if armorPixel:
+        x, y, w, h = armorPixel[0][0:4]
+        Matrix, error, real_error = kp.Predict(Matrix, kalman, error, real_error, frame, x, y, w, h)
+        print("x = %d, y = %d"%(x, y))
+

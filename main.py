@@ -8,9 +8,6 @@ import lightDetect as ld
 import pefermance as pf
 import KalmanPredict as kp 
 
-showimage = True
-showText = True
-onminipc = False
 fps = []        
 count = {'perSucRatio':0, 'alSucRatio':0, 'alFrame':0, 
     'alSuc':0, 'perFrame':0, 'perSuc':0, 'period':30}
@@ -22,42 +19,44 @@ def main(cam):
      输出：无
      """
 
+    Matrix, kalman = kp.Kalman_init()
     raw_pitch = 0
     raw_yaw = 0
-    armcolor = 98  #114: red, 98: blue
-    cap = cv2.VideoCapture(cam)
-    #cap.set(3, 1380)
-    Matrix, kalman = kp.Kalman_init()
     error = []
     real_error = []
+
+    cap = cv2.VideoCapture(cam)
+    #cap.set(3, 1380)
+    armcolor = 98  #114: red, 98: blue
 
     while cap.isOpened():
         t1 = cv2.getTickCount()
         _, frame = cap.read()
-        show = frame.copy()
+        image = frame.copy()
         gray, lightGroup = ld.lightDetect(frame, armcolor)
         armorPixel = ad.armorDetect(frame, lightGroup)
 
-        if showText:     
-            naf = pf.putMsg(frame, t1, armorPixel, count) #打印信息
-            nfps = pf.putFps(frame, t1)
-            fps.append(nfps)
-            if len(armorPixel) > 0:
-                x, y, w, h = armorPixel[0][0:4]
-                Matrix, error, real_error = kp.Predict(Matrix, kalman, error, real_error, frame, x, y, w, h)
-                print("x = %d, y = %d"%(x, y))
-        if showimage:        
-            if len(armorPixel):
-                for [a, b, x, y, w, h] in armorPixel:
-                    armor = show[b: y, a: x]
-                    digit = show[int((b+y)/2 - h): int((b+y)/2 + h), int((a+x)/2 - h): int((a+x)/2 + h)]
-                    digit = cv2.cvtColor(digit, cv2.COLOR_BGR2GRAY)
-                    _, digit = cv2.threshold(digit, 10, 255, cv2.THRESH_BINARY)
-                    cv2.imshow("digit", digit)
+        naf = pf.putFrameSuccess(frame, t1, armorPixel, count)
+        pf.showtext(frame, t1, armorPixel, count, fps)
+        pf.showkalman(frame, armorPixel, Matrix, kalman, error, real_error)
 
-            cv2.imshow("frame", frame)
-        if onminipc and naf > 200:       #远程操控妙算按键失效，自动退出
-            break
+        if armorPixel:
+            for [a, b, x, y, w, h] in armorPixel:
+                armor = image[b: y, a: x]
+                x1, y1, x2, y2 = int((b+y)/2 - h), int((b+y)/2 + h), int((a+x)/2 - h), int((a+x)/2 + h)
+                mindigit = 0
+                maxdigit = image.shape[0]
+                if x1 < mindigit:
+                    x1 = mindigit
+                if y1 > maxdigit:
+                    y1 = maxdigit
+                digit = image[x1: y1, x2: y2]
+                digit = cv2.cvtColor(digit, cv2.COLOR_BGR2GRAY)
+                _, digit = cv2.threshold(digit, 10, 255, cv2.THRESH_BINARY)
+                cv2.imshow("digit", digit)
+        cv2.imshow("frame", frame)
+
+
 
         key = cv2.waitKey(5)
         if key is ord('r') or key is ord('b'):
@@ -74,6 +73,6 @@ if __name__ == "__main__":
     try:
         cam = sys.argv[1]
     except:
-        cam = "/dev/video2"
+        cam = "/dev/video0"
 
     main(cam)
