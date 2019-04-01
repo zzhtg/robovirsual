@@ -66,13 +66,13 @@ def main(cam):
 
     cv2.destroyAllWindows()
     cap.release() # 摄像头关闭
-    if showText and len(fps):
+    if pf.showtext and len(fps):
         print(naf)
 
 if __name__ == "__main__":
     try:
         cam = sys.argv[1]
     except:
-        cam = "/dev/video0"
+        cam = 0
 
     main(cam)
