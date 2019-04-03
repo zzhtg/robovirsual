@@ -39,6 +39,7 @@ sudo apt-get install git \
 	python3-py \
 	python3-pytest \
 	python3-pip \
+    scipy \
 	-y
 echo "# add cuda bin & library path:" >> ~/.bashrc
 echo "export PATH=/usr/local/cuda-7.0/bin:$PATH" >> ~/.bashrc
