@@ -38,12 +38,12 @@ def aimColormean(lightArea, mask, armcolor):
     mean_val = cv2.mean(lightArea, mask)
     if armcolor is 114:
         meanVal = (60 <= mean_val[0] <= 160 and
-                   170 <= mean_val[1] <= 220 and
+                   150<= mean_val[1] <= 220 and
                    240 <= mean_val[2] <= 255)
     if armcolor is 98:
         meanVal = (240 <= mean_val[0] <= 255 and
-                   170 <= mean_val[1] <= 250 and
-                   160 <= mean_val[2] <= 220)
+                   150 <= mean_val[1] <= 250 and
+                   60 <= mean_val[2] <= 220)
     return meanVal, mean_val
 
 def lightDetect(image, armcolor):

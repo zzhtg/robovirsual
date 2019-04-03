@@ -2,7 +2,9 @@
 import cv2
 import numpy as np
 import KalmanPredict as kp
-
+count = {'perSucRatio':0, 'alSucRatio':0, 'alFrame':0,
+    'alSuc':0, 'perFrame':0, 'perSuc':0, 'period':30}
+fps = []
 def putFps(frame, e1):
     '''
     输入：frame(当前帧）、t1（时间起点）
@@ -56,5 +58,4 @@ def showkalman(frame, armorPixel, Matrix, kalman, error, real_error):
     if armorPixel:
         x, y, w, h = armorPixel[0][0:4]
         Matrix, error, real_error = kp.Predict(Matrix, kalman, error, real_error, frame, x, y, w, h)
-        print("x = %d, y = %d"%(x, y))
 

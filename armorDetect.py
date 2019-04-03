@@ -5,6 +5,8 @@ import math
 import pefermance as pf
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
+anglebias = 0
+debug_mode = False
 
 def lenthDifDet(lLeft, lRight):
     '''
@@ -57,8 +59,6 @@ def lightDist(ll, lr):
     rlendistance = (547.27 * 5.5) / (1 + lr)
     return min(llendistance, rlendistance)
 
-debug_mode = False
-
 def orthoPixel(frame, lpixel, rpixel):
     '''
     输入：左右灯条的四个点坐标
@@ -94,6 +94,7 @@ def orthoAngle(vecmid, veclightL, veclightR):
     功能：计算两个灯条的中心连接矢量和两个灯条方向矢量的正交性
     输出：True or False , 左右灯条方向矢量与中心连接矢量的夹角
     '''
+    global anglebias
     vecmid = [vecmid[0][i] - vecmid[1][i] for i in range(2)]
     veclightL = [veclightL[0][i] - veclightL[1][i] for i in range(2)]
     veclightR = [veclightR[0][i] - veclightR[1][i] for i in range(2)]
@@ -108,7 +109,7 @@ def orthoAngle(vecmid, veclightL, veclightR):
     angleL = inl / (absC * absL)  # 左向量与中心向量的夹角
     angleR = inr / (absC * absR)  # 右向量与中心向量的夹角
     angleP = inp / (absL * absR) # 左右向量夹角
-
+    anglebias = (math.atan2(vecmid[0], vecmid[1]) / math.pi * 180.0)
     return_flag = (abs(angleL) < 0.3 and 
             abs(angleR) < 0.3 and
             abs(angleP) > 0.9)

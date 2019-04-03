@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+error = []
+real_error = []
 def Kalman_init():
     last_mes = current_mes = np.array((2, 1), np.float32)
     last_pre = current_pre = np.array((2, 1), np.float32)
@@ -25,13 +27,11 @@ def Predict(Matrix, kalman, error, real_error, frame, x1, y1, x2, y2):
     lpx, lpy = last_pre[0], last_pre[1]  # last predict
     cmx, cmy = current_mes[0], current_mes[1]  # current measure
     cpx, cpy = current_pre[0], current_pre[1]  # current predict
-    # print("实际值: x= %f,y= %f" % (cpx, cmy))
-    # print("预测值: x= %f,y= %f" % (cpx, cpy))
-    # print("误差：x= %f, y= %f" % (abs(cpx - cmx) / cmx, abs(cpy - cmy) / cmy))
+
     error.append(np.sqrt(cpx * cpx + cpy * cpy))
     real_error.append(np.sqrt(cmx * cmx + cmy * cmy))
-    # if(len(error) >= 100):
-    #     error = error[-99: -1]
+    cv2.rectangle(frame, (cmx - (x2 - x1) / 2, cmy - (y2 - y1) / 2), (cmx + (x2 - x1) / 2, cmy + (y2 - y1) / 2),
+                  (0, 0, 255), 3)
     cv2.rectangle(frame, (cpx-(x2-x1)/2, cpy-(y2-y1)/2), (cpx+(x2-x1)/2, cpy+(y2-y1)/2), (0, 255, 0), 3)
     Matrix = [last_mes, current_mes, last_pre, current_pre]
     return Matrix, error, real_error
