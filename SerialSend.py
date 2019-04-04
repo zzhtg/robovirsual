@@ -7,9 +7,7 @@ MODE = {'PITCH': 0x11, 'YAW': 0x12} # choose which Axis of Stm32 Robocloud to se
 def Serial_Send(ser, raw_pitch, raw_yaw):
     Msg = Process(raw_pitch, raw_yaw)
     ser.write(Msg.encode('ascii'))
-    Text_Send = ("You have sent", ord(Msg[0]), Msg[1:3], ord(Msg[4]), Msg[5:-2], ord(Msg[-1]), 'to the serial\n')
-    Text_Read = ser.readline()
-    return Text_Send, Text_Read
+    return Msg
 
 def Serial_init(boudrate, Timeout):
     # Get A initial Serial, or return a zero-value and exit python
