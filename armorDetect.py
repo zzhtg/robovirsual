@@ -164,4 +164,4 @@ def armorDetect(frame, lightGroup):
             armor = [int(i) for i in [x[0], y[0], x[7], y[7], (wL+wR)/2, (lL+lR)/2]]
             if armor is not None:
                 armorArea.append(armor)
-                return armorArea
+    return armorArea

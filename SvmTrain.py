@@ -1,5 +1,6 @@
 import cv2
 import os
+import time
 import numpy as np
 import armorDetect as ad
 def rotate(image, angle, center=None, scale=1.0): #1
@@ -39,7 +40,20 @@ def hog(img):
     hist = np.hstack(hists) # hist is a 64 bit vector
     return hist
 
-def savetrain(digit, endcount = 500, filename = "F:\\traindata", preview = False, trainmsg = True): # 保存训练集
+def image2hog(digit, preview = False):
+    digit_b, digit_g, digit_r = cv2.split(digit)
+    _, gg = cv2.threshold(cv2.equalizeHist(digit_g), 160, 255, cv2.THRESH_BINARY)
+    bias = -ad.anglebias - 90.0
+    gg1 = rotate(gg, bias)
+    traininput = cv2.resize(gg1, (18, 20))
+    if (preview):
+        cv2.imshow("preview_digits", cv2.resize(gg1, (400, 400)))
+        cv2.imshow("preview_digits_rotated", cv2.resize(gg1, (400, 400)))
+        cv2.imshow("preview_traininput", cv2.resize(traininput, (400, 400)))
+    hogdata = hog(traininput)
+    return hogdata
+
+def savetrain(hogdata, endcount = 500, filename = "F:\\traindata", trainmsg = True): # 保存训练集
     """
     function:   训练识别到的数字图像
     :param digit:原始数字图像
@@ -50,21 +64,45 @@ def savetrain(digit, endcount = 500, filename = "F:\\traindata", preview = False
     :return:
     """
     # 要统计的文件夹
+    if (os.path.exists(filename) == False):
+        print("该目录不存在，创建目录为%s"%filename)
+        os.makedirs(filename)
+        time.sleep(2)
     filecount = len([name for name in os.listdir(filename) if os.path.isfile(os.path.join(filename, name))])
     if(filecount >= endcount):
         print("The number of data file has over the limit: %d files"%(endcount))
         return
-    digit_b, digit_g, digit_r = cv2.split(digit)
-    _, gg = cv2.threshold(cv2.equalizeHist(digit_g), 160, 255, cv2.THRESH_BINARY)
-    bias = -ad.anglebias - 90.0
-    gg1 = rotate(gg, bias)
-    traininput = cv2.resize(gg1, (18, 20))
-    if (preview):
-        cv2.imshow("preview_digits", cv2.resize(gg1, (400,400)))
-        cv2.imshow("preview_digits_rotated", cv2.resize(gg1, (400,400)))
-        cv2.imshow("preview_traininput", cv2.resize(traininput, (400,400)))
-    hogdata = hog(traininput)
     trainname = (filename + "\\" + str(filecount) + ".npy")
     np.save(trainname, hogdata)
     if(trainmsg):
         print(trainname + " have saved")
+
+def readdata(file = "F:\\traindata"):
+    count = 0
+    traindata = np.zeros((4000, 64), np.float32)
+    group = [(file + "\\" + str(i) + "\\" ) for i in range(1, 9)]
+    for thisnum in range(0, 8):
+        for samplenum in range(0, 500):
+            traindata[count, :] = np.load(group[thisnum] + str(samplenum) + ".npy")
+            count = count + 1
+    return traindata
+def svmsave():
+    dataset = readdata()
+    responses = np.repeat(np.arange(1, 9), 500)[:, np.newaxis]
+    svm = cv2.ml.SVM_create()
+    svm.setKernel(cv2.ml.SVM_LINEAR)
+    svm.setType(cv2.ml.SVM_C_SVC)
+    svm.setC(2.67)
+    svm.setGamma(5.383)
+    svm.train(dataset, cv2.ml.ROW_SAMPLE, responses)
+    svm.save('svm_data.dat')
+def PredictShow(svm, testsample):
+    testsample = np.float32(testsample)
+    l = np.array([testsample])
+    result = svm.predict(l)[1]
+    return result
+
+if(__name__ == "__main__"):
+    svm = cv2.ml.SVM_load('svm_data.dat')
+    testsample = np.load("F:\\traindata\\1\\1.npy")
+    PredictShow(svm, testsample)
