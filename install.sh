@@ -56,8 +56,9 @@ cd opencv/build
 
 #remove CMakeCache.txt when error denote about "source dirictory do not exist"
 cmake -D BUILD_opencv_python3=YES -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local -D OPENCV_EXTRA_MODULES=../../opencv_contrib/modules -D PYTHON3_LIBRARIES=/usr/lib/arm-linux-gnueabihf/libpython3.4m.so -D PYTHON3_NUMPY_INCLUDE_DIRS=/usr/local/lib/python3.4/dite-packages/numpy/core/include/ ..
-
 make -j4
 make install
 
 sudo pip3 install pyserial
+cd ~
+git clone https://github.com/zzhtryagain/robovirsual.git
