@@ -23,31 +23,36 @@ ser = 0
 targetnum = 6
 recognize_num = 0
 key = 0
-def Stm32(DebugMode = True):
-    global key
+def Stm32(DebugMode = False):
+    global key, detect_flag
     while(SerialGive):
-        SerialMsg = ss.Serial_Send(ser, midx, midy)
-        if(DebugMode):
-            print("You have sent %d %s %d %s %d to the serial, x = %d, y = %d\n"%
-                (ord(SerialMsg[0]), SerialMsg[1:3], ord(SerialMsg[4]),
-                SerialMsg[5:-2], ord(SerialMsg[-1]), midx, midy))
-        if(key is ord('q')):
-            break    
-        
-def main(cam, SerialGive = True):
-    """
-     输入：cam(摄像头选取参数)
-     功能：主程序
-     输出：无
-     """
-    global midx, midy, recognize_num, key
-    svm = cv2.ml.SVM_load('/home/ubuntu/robovirsual/svm_data.dat')
-    Matrix, kalman = kp.Kalman_init()
-    cap = cv2.VideoCapture(cam)
-    # cap.set(3, 1380)
-    armcolor = 98  # 114: red, 98: blue
-    runningtime = 1.0
-    while cap.isOpened():
+        try:
+            SerialMsg = ss.Serial_Send(ser, midx, midy)
+            if(DebugMode):
+                print("You have sent", ord(SerialMsg[0]), SerialMsg[1], SerialMsg[2], SerialMsg[3], ord(SerialMsg[4]), SerialMsg[5], SerialMsg[6], SerialMsg[7], ord(SerialMsg[-1]),"to the serial, x = ", midx, "y = ", midy)
+                time.sleep(0.007)
+            if(key is ord('q')):
+                break 
+        except:
+            try:
+                ser = ss.Serial_init(115200, 1)
+                print("Here is no serial device, waiting for a connection...") 
+                if(key is ord('q')):
+                    break
+            except:
+                pass               
+def main(cam, SerialGive = True): 
+    """ 
+    输入：cam(摄像头选取参数) 功能：主程序 输出：无 
+    """ 
+    global midx, midy, recognize_num, key, detect_flag 
+    svm = cv2.ml.SVM_load('/home/ubuntu/robovirsual/svm_data.dat') 
+    Matrix, kalman = kp.Kalman_init() 
+    cap = cv2.VideoCapture(cam) 
+    # cap.set(3, 1380)     
+    armcolor = 98  # 114: red, 98: blue 
+    runningtime = 1.0 
+    while cap.isOpened(): 
         start = time.clock()
         midx = 320
         midy = 240
@@ -75,7 +80,8 @@ def main(cam, SerialGive = True):
                 hogtrait = st.image2hog(digit)
                 # st.savetrain(hogtrait, filename = "F:\\traindata")
                 recognize_num = st.PredictShow(svm, hogtrait)[0][0]
-
+        cv2.line(frame, (320, 0), (320, 479), (255, 255, 255), 3)
+        cv2.line(frame, (0, 240), (639, 240), (255, 255, 255), 3)
         cv2.imshow("frame", frame)
         key = cv2.waitKey(10)
         if key is ord('r') or key is ord('b'):
@@ -99,11 +105,11 @@ if __name__ == "__main__":
             print("Caution: Serial Not Found!")  # print caution
     t1 = threading.Thread(target=main, args=(cam, SerialGive,))
     t2 = threading.Thread(target=Stm32, args=(SerialGive,))
-    t1.start()
+    t1.start() 
     t2.start()
     t1.join()
     t2.join()
     print("Threads has been stopped")
-    #main(cam)
+   #main(cam)
     
     

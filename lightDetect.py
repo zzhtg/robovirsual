@@ -13,6 +13,7 @@ def frameReady(image):
     ret, image = cv2.threshold(image, 150, 255, cv2.THRESH_BINARY)
     kernel = np.ones((5, 5), np.uint8)
     image = cv2.erode(cv2.dilate(image, kernel, iterations = 1), kernel, iterations = 1)
+    cv2.imshow("readyimage", image)
     return image
 
 def lightAspectDet(lightRectangle):
@@ -43,7 +44,7 @@ def aimColormean(lightArea, mask, armcolor):
     if armcolor is 98:
         meanVal = (240 <= mean_val[0] <= 255 and
                    150 <= mean_val[1] <= 250 and
-                   60 <= mean_val[2] <= 220)
+                   60 <= mean_val[2] <= 240)
     return meanVal, mean_val
 
 def lightDetect(image, armcolor):
@@ -73,8 +74,8 @@ def lightDetect(image, armcolor):
         lightArea = cv2.bitwise_and(lightArea, lightArea, mask = mask)
         c_, mean_val = aimColormean(lightArea, mask, armcolor)
         if not c_:
-            # massege = "mean_val{0:.0f},{1:.0f},{2:.0f}".format(mean_val[0], mean_val[1], mean_val[2])
-            # cv2.putText(image, massege, (x, y-15), font, 0.4, (0, 255, 0), 1)
+            massege = "mean_val{0:.0f},{1:.0f},{2:.0f}".format(mean_val[0], mean_val[1], mean_val[2])
+            cv2.putText(image, massege, (x, y-15), font, 0.4, (0, 255, 0), 1)
             continue
         lightGroup.append(lightRectangle)
     return readyDst, lightGroup

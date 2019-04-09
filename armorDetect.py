@@ -6,7 +6,7 @@ import pefermance as pf
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
 anglebias = 0
-debug_mode = False
+debug_mode = True
 
 def lenthDifDet(lLeft, lRight):
     '''
@@ -14,7 +14,7 @@ def lenthDifDet(lLeft, lRight):
     功能：检测当前灯条组合是否符合长度差距条件
     输出：True 或者 False 以及 长度宽度比 '''
     lenthDif = abs(lLeft-lRight) / max(lLeft, lRight)
-    return  lenthDif <= 0.36, lenthDif
+    return  lenthDif <= 1.0, lenthDif
 
 def widthDifDet(wLeft, wRight):
     '''
@@ -24,7 +24,7 @@ def widthDifDet(wLeft, wRight):
     '''
     wLeft, wRight = [i+1 for i in [wLeft, wRight]]
     widthDif = abs(wLeft-wRight) / max(wLeft, wRight)
-    return widthDif <= 0.68, widthDif
+    return widthDif <= 1.0, widthDif
 
 def armorAspectDet(xL, yL, xR, yR, lL, lR, wL, wR):
     '''
@@ -33,7 +33,7 @@ def armorAspectDet(xL, yL, xR, yR, lL, lR, wL, wR):
     输出：True 或者 False 以及 装甲横纵比
     '''
     armorAspect = math.sqrt((yR-yL)**2 + (xR-xL)**2) / max(lL, lR, wL, wR)
-    return (4.5 >= armorAspect and armorAspect >= 1.7), armorAspect
+    return (6.0 >= armorAspect and armorAspect >= 1.0), armorAspect
 
 def paralle(p1, p2):
     '''
@@ -47,7 +47,7 @@ def paralle(p1, p2):
     lk = (ry1-ly1) / (rx1 - lx1)
     rk = (ry2-ly2) / (rx2 - lx2)
     para = abs((rk - lk) / (1 + lk*rk))
-    return para < 0.15, para
+    return para < 0.3, para
 
 def lightDist(ll, lr):
     '''
@@ -129,7 +129,6 @@ def armorDetect(frame, lightGroup):
     输出：armorArea（可能是装甲的矩形【长宽、左上角坐标,左右灯条长宽平均值】的列表）
     '''
     armorArea = []
-
     lens = len(lightGroup)
     for left in range(lens):
         for right in range(left + 1, lens):
@@ -144,12 +143,15 @@ def armorDetect(frame, lightGroup):
 
             l_, lenthDif = lenthDifDet(lL, lR) # 长度差距判断：两灯条的长度差 / 长一点的那个长度 < 36%
             if not l_:
+                print("lenthDif=",lenthDif)
                 continue
             w_, widthDif = widthDifDet(wL, wR) # 宽度差距判断：两灯条的宽度差 / 长一点的那个长度 < 68%
             if not w_:
+                print("widthDif=",widthDif)
                 continue
             a_, armorAspect = armorAspectDet(xL, yL, xR, yR, lL, lR, wL, wR) # 横纵比判断：2.7~4.5
             if not a_:
+                print("armorAspect=", armorAspect)
                 continue
             lpixel = cv2.boxPoints(lightGroup[left])
             rpixel = cv2.boxPoints(lightGroup[right])
@@ -157,11 +159,11 @@ def armorDetect(frame, lightGroup):
             vecmid, veclightL, veclightR = orthoPixel(frame, lpixel, rpixel)
             o_, orthoLValue, orthoRValue, angleP = orthoAngle(vecmid, veclightL, veclightR)# 垂直判断：< 0.9
             if not o_:
+                print("angleP=", angleP)
                 continue
-
             x = sorted(np.append(lpixel[0:4, 0], rpixel[0:4, 0]))
             y = sorted(np.append(lpixel[0:4, 1], rpixel[0:4, 1]))
-            armor = [int(i) for i in [x[0], y[0], x[7], y[7], (wL+wR)/2, (lL+lR)/2]]
+            armor = [i for i in [x[0], y[0], x[7], y[7], (wL+wR)/2, (lL+lR)/2]]
             if armor is not None:
                 armorArea.append(armor)
     return armorArea
