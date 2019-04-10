@@ -3,10 +3,11 @@ import cv2
 import numpy as np
 import math
 import pefermance as pf
+import SvmTrain as st
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
 anglebias = 0
-debug_mode = True
+debug_mode = False
 
 def lenthDifDet(lLeft, lRight):
     '''
@@ -33,7 +34,7 @@ def armorAspectDet(xL, yL, xR, yR, lL, lR, wL, wR):
     输出：True 或者 False 以及 装甲横纵比
     '''
     armorAspect = math.sqrt((yR-yL)**2 + (xR-xL)**2) / max(lL, lR, wL, wR)
-    return (6.0 >= armorAspect and armorAspect >= 1.0), armorAspect
+    return (4.0 >= armorAspect and armorAspect >= 0.9), armorAspect
 
 def paralle(p1, p2):
     '''
@@ -113,21 +114,21 @@ def orthoAngle(vecmid, veclightL, veclightR):
     return_flag = (abs(angleL) < 0.3 and 
             abs(angleR) < 0.3 and
             abs(angleP) > 0.9)
-    if return_flag:
-        None
-    else:
+    if not return_flag:
         print(angleL, angleR, angleP)
     if(return_flag and debug_mode):
         print("angleL = ", angleL, "angleR = ", angleR, "midAngle = ", (angleL + angleR) / 2)
     # 范围 60~120度， 两个灯条都满足
     return return_flag, angleL, angleR, angleP
-
-def armorDetect(frame, lightGroup):
+def svmDigitDetect(Target_num, detectnum):
+    return Target_num == detectnum, detectnum
+def armorDetect(svm, frame, lightGroup, Target_num, trainmode = False, file = "F:\\traindata\\"):
     '''
     输入：lightGroup（可能是灯条的矩形最小边界拟合信息）
     功能：一一对比矩形、找到可能的灯条组合作为装甲
     输出：armorArea（可能是装甲的矩形【长宽、左上角坐标,左右灯条长宽平均值】的列表）
     '''
+    image = frame.copy()
     armorArea = []
     lens = len(lightGroup)
     for left in range(lens):
@@ -163,7 +164,29 @@ def armorDetect(frame, lightGroup):
                 continue
             x = sorted(np.append(lpixel[0:4, 0], rpixel[0:4, 0]))
             y = sorted(np.append(lpixel[0:4, 1], rpixel[0:4, 1]))
-            armor = [i for i in [x[0], y[0], x[7], y[7], (wL+wR)/2, (lL+lR)/2]]
+            armor = [i for i in [x[0], y[0], x[7], y[7]]]
+
+            # digit detection
+            h = (lL+lR)/2
+            x1, y1, x2, y2 = int((y[0] + y[7]) / 2 - h), int((y[0] + y[7]) / 2 + h), int((x[0] + x[7]) / 2 - h * 0.75), int(
+                (x[0] + x[7]) / 2 + h * 0.75)
+            mindigit = 0
+            maxdigit = image.shape[0]
+            x1 = mindigit if x1 < mindigit else x1 # 使用三元运算符改写
+            y1 = maxdigit if y1 > maxdigit else y1
+            digit = image[x1: y1, x2: y2]
+
+            if(sum(np.shape(digit)) == 0):
+                print(np.shape(digit))
+                continue
+            hogtrait = st.image2hog(digit)
+            if not trainmode: # 如果开启了训练模式,会读取设定保存的文件目录,然后识别时不经过数字判断
+                n_, num = svmDigitDetect(Target_num, st.PredictShow(svm, hogtrait))
+                if not n_:
+                    print("wrong digit=", num[0][0])
+                    continue
+            else:
+                st.savetrain(hogtrait, filename = file)
             if armor is not None:
                 armorArea.append(armor)
     return armorArea

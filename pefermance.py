@@ -4,6 +4,16 @@ import numpy as np
 import KalmanPredict as kp
 count = {'perSucRatio':0, 'alSucRatio':0, 'alFrame':0,
     'alSuc':0, 'perFrame':0, 'perSuc':0, 'period':30}
+def putCrossFocus(frame):
+    '''
+    :param frame: 输入帧图像
+    :return: 画图后的图像
+    :function: 画出十字线和准星
+    '''
+    cv2.line(frame, (320, 0), (320, 479), (255, 255, 255), 3)
+    cv2.line(frame, (0, 240), (639, 240), (255, 255, 255), 3)
+    return frame
+
 def putFrameSuccess(frame, runningtime, armor, count):
     '''
     输入：frame(当前帧)、 armor(装甲列表)、count(计数成员字典)

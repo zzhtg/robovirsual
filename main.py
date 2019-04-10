@@ -16,13 +16,14 @@ import KalmanPredict as kp
 import SerialSend as ss
 import SvmTrain as st
 ad.debugmode = False
-SerialGive = True
+SerialGive = False
 midx = 320
 midy = 240
 ser = 0
-targetnum = 6
+targetnum = 8
 recognize_num = 0
 key = 0
+
 def Stm32(DebugMode = False):
     global key, detect_flag
     while(SerialGive):
@@ -40,13 +41,13 @@ def Stm32(DebugMode = False):
                 if(key is ord('q')):
                     break
             except:
-                pass               
+                pass
 def main(cam, SerialGive = True): 
     """ 
     输入：cam(摄像头选取参数) 功能：主程序 输出：无 
     """ 
     global midx, midy, recognize_num, key, detect_flag 
-    svm = cv2.ml.SVM_load('/home/ubuntu/robovirsual/svm_data.dat') 
+    svm = cv2.ml.SVM_load('.\\svm_data.dat')
     Matrix, kalman = kp.Kalman_init() 
     cap = cv2.VideoCapture(cam) 
     # cap.set(3, 1380)     
@@ -57,33 +58,18 @@ def main(cam, SerialGive = True):
         midx = 320
         midy = 240
         _, frame = cap.read()
-        image = frame.copy()
         gray, lightGroup = ld.lightDetect(frame, armcolor)
-        armorPixel = ad.armorDetect(frame, lightGroup)
+        armorPixel = ad.armorDetect(svm, frame, lightGroup, targetnum, trainmode = True, file = "F:\\traindata\\" + str(targetnum)+"\\")
         naf = pf.putFrameSuccess(frame, runningtime, armorPixel, pf.count)
-        if(targetnum == recognize_num):
-            pf.showkalman(frame, armorPixel, Matrix, kalman, kp.error, kp.real_error)
-            print(recognize_num)
         if armorPixel:
-            for [a, b, x, y, w, h] in armorPixel:
+            for [a, b, x, y] in armorPixel:
                 midx = math.ceil((a + x) / 2)
                 midy = math.ceil((b + y) / 2)
-                armor = image[b: y, a: x]
-                x1, y1, x2, y2 = int((b+y)/2 - h), int((b+y)/2 + h), int((a+x)/2 - h * 0.75), int((a+x)/2 + h * 0.75)
-                mindigit = 0
-                maxdigit = image.shape[0]
-                if x1 < mindigit:
-                    x1 = mindigit
-                if y1 > maxdigit:
-                    y1 = maxdigit
-                digit = image[x1: y1, x2: y2]
-                hogtrait = st.image2hog(digit)
-                # st.savetrain(hogtrait, filename = "F:\\traindata")
-                recognize_num = st.PredictShow(svm, hogtrait)[0][0]
-        cv2.line(frame, (320, 0), (320, 479), (255, 255, 255), 3)
-        cv2.line(frame, (0, 240), (639, 240), (255, 255, 255), 3)
+                pf.showkalman(frame, armorPixel, Matrix, kalman, kp.error, kp.real_error)
+        frame = pf.putCrossFocus(frame)
         cv2.imshow("frame", frame)
         key = cv2.waitKey(10)
+
         if key is ord('r') or key is ord('b'):
             armcolor = key
         if(key is ord('q')):
@@ -93,23 +79,25 @@ def main(cam, SerialGive = True):
         end = time.clock()
         runningtime = end-start
 
+
 if __name__ == "__main__":
-    global t1, t2
     try:
         cam = sys.argv[1]
     except:
         cam = 0
+    global t1, t2
     if (SerialGive):
         ser = ss.Serial_init(115200, 1)  # get a serial item, first arg is the boudrate, and the second is timeout
         if (ser == 0):  # if not an existed Serial object
             print("Caution: Serial Not Found!")  # print caution
-    t1 = threading.Thread(target=main, args=(cam, SerialGive,))
-    t2 = threading.Thread(target=Stm32, args=(SerialGive,))
-    t1.start() 
-    t2.start()
-    t1.join()
-    t2.join()
-    print("Threads has been stopped")
-   #main(cam)
+        t1 = threading.Thread(target=main, args=(cam, SerialGive,))
+        t2 = threading.Thread(target=Stm32, args=(SerialGive,))
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
+        print("Threads has been stopped")
+    else:
+        main(cam)
     
     

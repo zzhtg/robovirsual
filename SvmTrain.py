@@ -53,7 +53,7 @@ def image2hog(digit, preview = False):
     hogdata = hog(traininput)
     return hogdata
 
-def savetrain(hogdata, endcount = 500, filename = "F:\\traindata", trainmsg = True): # 保存训练集
+def savetrain(hogdata, endcount = 1500, filename = "F:\\traindata", trainmsg = True): # 保存训练集
     """
     function:   训练识别到的数字图像
     :param digit:原始数字图像
