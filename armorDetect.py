@@ -172,7 +172,7 @@ def armorDetect(svm, frame, lightGroup, Target_num, trainmode = False, file = "F
                 continue
             hogtrait = st.image2hog(digit)
             if not trainmode: # 如果开启了训练模式,会读取设定保存的文件目录,然后识别时不经过数字判断
-                n_, num = svmDigitDetect(Target_num, st.PredictShow(svm, hogtrait))
+                n_, num = svmDigitDetect(Target_num, st.predictShow(svm, hogtrait))
                 if not n_:
                     print("wrong digit=", num[0][0])
                     continue

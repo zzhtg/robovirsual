@@ -1,4 +1,6 @@
-#install cuda and opencv-tegra
+#!/usr/bin/env bash
+#   install cuda and opencv-tegra
+
 cd ~/Downloads
 wget --no-check-certificate http://developer.download.nvidia.com/embedded/OpenCV/L4T_21.2/libopencv4tegra-repo_l4t-r21_2.4.10.1_armhf.deb
 wget --no-check-certificate http://developer.download.nvidia.com/embedded/L4T/r21_Release_v3.0/cuda-repo-l4t-r21.3-6-5-prod_6.5-42_armhf.deb
@@ -54,7 +56,7 @@ git clone https://github.com/opencv/opencv_contrib.git
 mkdir opencv/build
 cd opencv/build 
 
-#remove CMakeCache.txt when error denote about "source dirictory do not exist"
+#remove CMakeCache.txt when error denote about "source directory do not exist"
 cmake -D BUILD_opencv_python3=YES -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local -D OPENCV_EXTRA_MODULES=../../opencv_contrib/modules -D PYTHON3_LIBRARIES=/usr/lib/arm-linux-gnueabihf/libpython3.4m.so -D PYTHON3_NUMPY_INCLUDE_DIRS=/usr/local/lib/python3.4/dite-packages/numpy/core/include/ ..
 make -j4
 make install

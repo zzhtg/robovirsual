@@ -2,19 +2,22 @@ import cv2
 import numpy as np
 error = []
 real_error = []
-def Kalman_init():
+
+
+def kalman_init():
     last_mes = current_mes = np.array((2, 1), np.float32)
     last_pre = current_pre = np.array((2, 1), np.float32)
-    Matrix = [last_mes, current_mes, last_pre, current_pre]
+    matrix = [last_mes, current_mes, last_pre, current_pre]
     kalman = cv2.KalmanFilter(4, 2, 0)
-    kalman.measurementMatrix = np.array([[1, 0, 0, 0], [0, 1, 0, 0]], np.float32)
-    kalman.transitionMatrix = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32)
+    kalman.measurement_matrix = np.array([[1, 0, 0, 0], [0, 1, 0, 0]], np.float32)
+    kalman.transition_matrix = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32)
     kalman.processNoiseCov = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32) * 0.003
     kalman.measurementNoiseCov = np.array([[1, 0], [0, 1]], np.float32) * 1
-    return Matrix, kalman
+    return matrix, kalman
 
-def Predict(Matrix, kalman, error, real_error, frame, x1, y1, x2, y2):
-    last_mes, current_mes, last_pre, current_pre = Matrix
+
+def predict(matrix, kalman, error, real_error, frame, x1, y1, x2, y2):
+    last_mes, current_mes, last_pre, current_pre = matrix
     last_pre = current_pre  # 更新预测值
     last_mes = current_mes  # 更新测量值
     x = (x1 + x2) / 2
@@ -33,5 +36,5 @@ def Predict(Matrix, kalman, error, real_error, frame, x1, y1, x2, y2):
     cv2.rectangle(frame, (cmx - (x2 - x1) / 2, cmy - (y2 - y1) / 2), (cmx + (x2 - x1) / 2, cmy + (y2 - y1) / 2),
                   (0, 0, 255), 3)
     cv2.rectangle(frame, (cpx-(x2-x1)/2, cpy-(y2-y1)/2), (cpx+(x2-x1)/2, cpy+(y2-y1)/2), (0, 255, 0), 3)
-    Matrix = [last_mes, current_mes, last_pre, current_pre]
-    return Matrix, error, real_error
+    matrix = [last_mes, current_mes, last_pre, current_pre]
+    return matrix, error, real_error

@@ -3,6 +3,7 @@ import os
 import time
 import numpy as np
 import armorDetect as ad
+
 def rotate(image, angle, center=None, scale=1.0): #1
     '''
     function:   根据输入角度将图像矫正
@@ -15,7 +16,7 @@ def rotate(image, angle, center=None, scale=1.0): #1
     (h, w) = image.shape[:2] #2
     if center is None: #3
         center = (w // 2, h // 2) #4
-    M = cv2.getRotationMatrix2D(center, angle, scale) #5
+    M = cv2.getRotationmatrix2D(center, angle, scale) #5
     rotated = cv2.warpAffine(image, M, (w, h)) #6
     return rotated
 
@@ -86,6 +87,7 @@ def readdata(file = "F:\\traindata"):
             traindata[count, :] = np.load(group[thisnum] + str(samplenum) + ".npy")
             count = count + 1
     return traindata
+
 def svmsave():
     dataset = readdata()
     responses = np.repeat(np.arange(1, 9), 500)[:, np.newaxis]
@@ -96,13 +98,15 @@ def svmsave():
     svm.setGamma(5.383)
     svm.train(dataset, cv2.ml.ROW_SAMPLE, responses)
     svm.save('svm_data.dat')
-def PredictShow(svm, testsample):
+
+def predictShow(svm, testsample):
     testsample = np.float32(testsample)
     l = np.array([testsample])
     result = svm.predict(l)[1]
     return result
 
-if(__name__ == "__main__"):
+
+if __name__ == "__main__":
     svm = cv2.ml.SVM_load('svm_data.dat')
     testsample = np.load("F:\\traindata\\1\\1.npy")
-    PredictShow(svm, testsample)
+    predictShow(svm, testsample)

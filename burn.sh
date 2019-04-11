@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 cd ~/Downloads
 wget --no-check-certificate https://dl.djicdn.com/downloads/manifold/manifold_image_v1.0.tar.gz
 mkdir ~/manifold
