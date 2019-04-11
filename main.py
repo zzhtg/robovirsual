@@ -15,6 +15,8 @@ import pefermance as pf
 import KalmanPredict as kp
 import SerialSend as ss
 import SvmTrain as st
+
+
 ad.debugmode = False
 SerialGive = False
 midx = 320
@@ -23,7 +25,7 @@ ser = 0
 targetnum = 8
 recognize_num = 0
 key = 0
-
+cv2.
 def Stm32(DebugMode = False):
     global key, detect_flag
     while(SerialGive):
@@ -42,6 +44,7 @@ def Stm32(DebugMode = False):
                     break
             except:
                 pass
+
 def main(cam, SerialGive = True): 
     """ 
     输入：cam(摄像头选取参数) 功能：主程序 输出：无 
@@ -59,7 +62,7 @@ def main(cam, SerialGive = True):
         midy = 240
         _, frame = cap.read()
         gray, lightGroup = ld.lightDetect(frame, armcolor)
-        armorPixel = ad.armorDetect(svm, frame, lightGroup, targetnum, trainmode = True, file = "F:\\traindata\\" + str(targetnum)+"\\")
+        armorPixel = ad.armorDetect(svm, frame, lightGroup, targetnum)
         naf = pf.putFrameSuccess(frame, runningtime, armorPixel, pf.count)
         if armorPixel:
             for [a, b, x, y] in armorPixel:
