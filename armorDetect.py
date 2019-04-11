@@ -36,20 +36,6 @@ def armorAspectDet(xL, yL, xR, yR, lL, lR, wL, wR):
     armorAspect = math.sqrt((yR-yL)**2 + (xR-xL)**2) / max(lL, lR, wL, wR)
     return (4.0 >= armorAspect and armorAspect >= 0.9), armorAspect
 
-def paralle(p1, p2):
-    '''
-    //暂时没有采用
-    输入：两组 两个(x, y)形式点的信息
-    功能：判断两点确定的直线是否平行
-    输出：True or False ,斜率差值
-    '''
-    [lx1, ly1], [lx2, ly2] = p1
-    [rx1, ry1], [rx2, ry2] = p2
-    lk = (ry1-ly1) / (rx1 - lx1)
-    rk = (ry2-ly2) / (rx2 - lx2)
-    para = abs((rk - lk) / (1 + lk*rk))
-    return para < 0.3, para
-
 def lightDist(ll, lr):
     '''
     输入：左右灯条的像素长度
@@ -120,8 +106,10 @@ def orthoAngle(vecmid, veclightL, veclightR):
         print("angleL = ", angleL, "angleR = ", angleR, "midAngle = ", (angleL + angleR) / 2)
     # 范围 60~120度， 两个灯条都满足
     return return_flag, angleL, angleR, angleP
+
 def svmDigitDetect(Target_num, detectnum):
     return Target_num == detectnum, detectnum
+
 def armorDetect(svm, frame, lightGroup, Target_num, trainmode = False, file = "F:\\traindata\\"):
     '''
     输入：lightGroup（可能是灯条的矩形最小边界拟合信息）
@@ -171,9 +159,12 @@ def armorDetect(svm, frame, lightGroup, Target_num, trainmode = False, file = "F
             x1, y1, x2, y2 = int((y[0] + y[7]) / 2 - h), int((y[0] + y[7]) / 2 + h), int((x[0] + x[7]) / 2 - h * 0.75), int(
                 (x[0] + x[7]) / 2 + h * 0.75)
             mindigit = 0
-            maxdigit = image.shape[0]
+            maxrightdigit = image.shape[0]
+            maxleftdigit = image.shape[1]
             x1 = mindigit if x1 < mindigit else x1 # 使用三元运算符改写
-            y1 = maxdigit if y1 > maxdigit else y1
+            y1 = maxrightdigit if y1 > maxrightdigit else y1
+            x2 = mindigit if x2 < mindigit else x2
+            y2 = maxleftdigit if y2 > maxleftdigit else y2
             digit = image[x1: y1, x2: y2]
 
             if(sum(np.shape(digit)) == 0):

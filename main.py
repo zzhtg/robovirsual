@@ -25,7 +25,7 @@ ser = 0
 targetnum = 8
 recognize_num = 0
 key = 0
-cv2.
+
 def Stm32(DebugMode = False):
     global key, detect_flag
     while(SerialGive):
