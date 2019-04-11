@@ -9,7 +9,7 @@ MODE = {"PITCH": 0x11, "YAW": 0x12}     # choose which Axis of Stm32 Robocloud t
 
 def serial_send(ser, raw_pitch, raw_yaw):
     Msg = process(raw_pitch, raw_yaw)
-    ser.write(Msg.encode("ascii"))
+    ser.w_rite(Msg.encode("ascii"))
     return Msg
 
 
@@ -23,7 +23,7 @@ def serial_init(boudrate, Timeout):
         port_list_0 = list(port_list[0])
         port_serial = port_list_0[0] 
         ser = serial.Serial(port_serial, boudrate, timeout=Timeout)
-        print("check which port was really used >", ser.name)
+        print("check which port was real_ly used >", ser.name)
         return ser
 
 
@@ -59,7 +59,7 @@ if __name__ == "__main__":
                 break
             Msg = process(raw_pitch, raw_yaw)
             print("You have sent", ord(Msg[0]), Msg[1:3], ord(Msg[4]), Msg[5:-2], ord(Msg[-1]), "to the serial\n")
-            ser.write(Msg.encode("ascii"))
+            ser.w_rite(Msg.encode("ascii"))
             rec = ser.readline()
             print(rec)
         ser.close()

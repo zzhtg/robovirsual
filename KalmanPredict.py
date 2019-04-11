@@ -9,8 +9,8 @@ def kalman_init():
     last_pre = current_pre = np.array((2, 1), np.float32)
     matrix = [last_mes, current_mes, last_pre, current_pre]
     kalman = cv2.KalmanFilter(4, 2, 0)
-    kalman.measurement_matrix = np.array([[1, 0, 0, 0], [0, 1, 0, 0]], np.float32)
-    kalman.transition_matrix = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32)
+    kalman.measurementMatrix = np.array([[1, 0, 0, 0], [0, 1, 0, 0]], np.float32)
+    kalman.transitionMatrix = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32)
     kalman.processNoiseCov = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32) * 0.003
     kalman.measurementNoiseCov = np.array([[1, 0], [0, 1]], np.float32) * 1
     return matrix, kalman

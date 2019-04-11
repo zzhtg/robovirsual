@@ -4,6 +4,7 @@ import time
 import numpy as np
 import armorDetect as ad
 
+
 def rotate(image, angle, center=None, scale=1.0): #1
     '''
     function:   根据输入角度将图像矫正
@@ -16,7 +17,7 @@ def rotate(image, angle, center=None, scale=1.0): #1
     (h, w) = image.shape[:2] #2
     if center is None: #3
         center = (w // 2, h // 2) #4
-    M = cv2.getRotationmatrix2D(center, angle, scale) #5
+    M = cv2.getRotationMatrix2D(center, angle, scale) #5
     rotated = cv2.warpAffine(image, M, (w, h)) #6
     return rotated
 
@@ -33,9 +34,9 @@ def hog(img):
     mag, ang = cv2.cartToPolar(gx, gy)     # 计算梯度的幅度和相位
     bins = np.int32(bin_n*ang/(2*np.pi))   # quantizing binvalues in (0...16)
     # 将范围映射到0-15.待会统计直方图的时候就有16组，组数越多，精度越高
-    bin_cells = bins[:10,:9], bins[10:,:9], bins[:10,9:], bins[10:,9:]
-    mag_cells = mag[:10,:9], mag[10:,:9], mag[:10,9:], mag[10:,9:]
-    hists = [np.bincount(b.ravel(), m.ravel(), bin_n) for b, m in list(zip(bin_cells, mag_cells))]
+    bin_cel_ls = bins[:10,:9], bins[10:,:9], bins[:10,9:], bins[10:,9:]
+    mag_cel_ls = mag[:10,:9], mag[10:,:9], mag[:10,9:], mag[10:,9:]
+    hists = [np.bincount(b.ravel(), m.ravel(), bin_n) for b, m in list(zip(bin_cel_ls, mag_cel_ls))]
     # bincount 为统计频数函数，给出最小值到最大值每一个值出现的频数
     # arg1：要统计的数据，arg2：每个数据的权值，arg3：最小值
     hist = np.hstack(hists) # hist is a 64 bit vector
@@ -44,7 +45,7 @@ def hog(img):
 def image2hog(digit, preview = False):
     digit_b, digit_g, digit_r = cv2.split(digit)
     _, gg = cv2.threshold(cv2.equalizeHist(digit_g), 160, 255, cv2.THRESH_BINARY)
-    bias = -ad.anglebias - 90.0
+    bias = -ad.angle_bias - 90.0
     gg1 = rotate(gg, bias)
     traininput = cv2.resize(gg1, (18, 20))
     if (preview):

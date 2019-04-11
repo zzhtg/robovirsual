@@ -13,7 +13,7 @@ import numpy as np
 import armorDetect as ad
 import lightDetect as ld
 import pefermance as pf
-import Kalmanpredict as kp
+import KalmanPredict as kp
 import SerialSend as ss
 import SvmTrain as st
 
@@ -23,13 +23,13 @@ serial_give = False
 midx = 320
 midy = 240
 ser = 0
-target_num = 8
+target_num = 3
 recognize_num = 0
 key = 0
 
 
 def stm32(debug_mode=False):
-    global key, detect_flag
+    global key, midx, midy, serial_give
     while serial_give:
         try:
             serial_msg = ss.Serial_Send(ser, midx, midy)
@@ -48,24 +48,20 @@ def stm32(debug_mode=False):
                 pass
 
 
-def main(cam, serial_give = True): 
+def main():
     """ 
     输入：cam(摄像头选取参数) 功能：主程序 输出：无 
     """ 
-    global midx, midy, recognize_num, key, detect_flag 
+    global midx, midy, recognize_num
+    global serial_give, cap, color
     svm = cv2.ml.SVM_load('.\\svm_data.dat')
     matrix, kalman = kp.kalman_init()
-    cap = cv2.VideoCapture(cam) 
-    # cap.set(3, 1380)     
-    color = 98  # 114: red, 98: blue 
-    interval = 1.0 
+    interval = 1.0
     while cap.isOpened(): 
         start = time.clock()
-        midx = 320
-        midy = 240
         _, frame = cap.read()
-        gray, group = ld.lightDetect(frame, color)
-        coordinate = ad.armorDetect(svm, frame, group, target_num)
+        gray, group = ld.light_detect(frame, color)
+        coordinate = ad.armor_detect(svm, frame, group, target_num)
         entire = pf.put_success(frame, interval, coordinate, pf.count)
         if coordinate:
             for [a, b, x, y] in coordinate:
@@ -74,16 +70,15 @@ def main(cam, serial_give = True):
                 pf.show_kalman(frame, coordinate, matrix, kalman, kp.error, kp.real_error)
         frame = pf.put_cross_focus(frame)
         cv2.imshow("frame", frame)
-        key = cv2.waitKey(10)
+        key = cv2.waitKey(5)
 
         if key is ord('r') or key is ord('b'):
             color = key
         if key is ord('q'):
+            cap.release()   # 摄像头关闭
             cv2.destroyAllWindows()
-            cap.release()  # 摄像头关闭
             break
-        end = time.clock()
-        interval = end-start
+        interval = time.clock()-start
 
 
 if __name__ == "__main__":
@@ -91,17 +86,21 @@ if __name__ == "__main__":
         cam = sys.argv[1]
     except:
         cam = 0
-    global t1, t2
+    cap = cv2.VideoCapture(cam)
+    color = 98  # 114: red, 98: blue
+
     if serial_give:
         ser = ss.serial_init(115200, 1)  # get a serial item, first arg is the boudrate, and the second is timeout
         if ser == 0:  # if not an existed Serial object
             print("Caution: Serial Not Found!")  # print caution
-        t1 = threading.Thread(target=main, args=(cam, serial_give,))
-        t2 = threading.Thread(target=stm32, args=(serial_give,))
-        t1.start()
-        t2.start()
-        t1.join()
-        t2.join()
+        thread_main = threading.Thread(target=main, args=(cam, serial_give,))
+        thread_serial = threading.Thread(target=stm32, args=(serial_give,))
+        thread_main.start()
+        thread_serial.start()
+        thread_main.join()
+        thread_serial.join()
         print("Threads has been stopped")
     else:
-        main(cam)
+        main()
+    cap.release()
+    cv2.destroyAllWindows()
