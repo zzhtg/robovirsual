@@ -17,17 +17,6 @@ import KalmanPredict as kp
 import SerialSend as ss
 import SvmTrain as st
 
-
-ad.debug_mode = False
-serial_give = False
-midx = 320
-midy = 240
-ser = 0
-target_num = 3
-recognize_num = 0
-key = 0
-
-
 def stm32(debug_mode=False):
     global key, midx, midy, serial_give
     while serial_give:
@@ -75,20 +64,33 @@ def main():
         if key is ord('r') or key is ord('b'):
             color = key
         if key is ord('q'):
-            cap.release()   # 摄像头关闭
             cv2.destroyAllWindows()
+            cap.release()   # 摄像头关闭
             break
         interval = time.clock()-start
 
 
 if __name__ == "__main__":
+    # camera load
     try:
         cam = sys.argv[1]
     except:
         cam = 0
-    cap = cv2.VideoCapture(cam)
+    cap = cv2.VideoCapture(cam,cv2.CAP_DSHOW)
+    # global variable
+    cap.set(3, 1920)
+    cap.set(4, 1080)
+    cap.set(14, -7)
     color = 98  # 114: red, 98: blue
-
+    ad.debug_mode = False
+    serial_give = False
+    midx = 320
+    midy = 240
+    ser = 0
+    target_num = 3
+    recognize_num = 0
+    key = 0
+    # if or if not serial 
     if serial_give:
         ser = ss.serial_init(115200, 1)  # get a serial item, first arg is the boudrate, and the second is timeout
         if ser == 0:  # if not an existed Serial object
@@ -100,7 +102,5 @@ if __name__ == "__main__":
         thread_main.join()
         thread_serial.join()
         print("Threads has been stopped")
-    else:
+    else: # None Serial Debug Connection
         main()
-    cap.release()
-    cv2.destroyAllWindows()

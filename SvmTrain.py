@@ -79,19 +79,19 @@ def savetrain(hogdata, endcount = 1500, filename = "F:\\traindata", trainmsg = T
     if(trainmsg):
         print(trainname + " have saved")
 
-def readdata(file = "F:\\traindata"):
+def readdata(filenum, file = "F:\\traindata"):
     count = 0
-    traindata = np.zeros((4000, 64), np.float32)
+    traindata = np.zeros((filenum * 8, 64), np.float32)
     group = [(file + "\\" + str(i) + "\\" ) for i in range(1, 9)]
     for thisnum in range(0, 8):
-        for samplenum in range(0, 500):
+        for samplenum in range(0, filenum):
             traindata[count, :] = np.load(group[thisnum] + str(samplenum) + ".npy")
             count = count + 1
     return traindata
 
-def svmsave():
-    dataset = readdata()
-    responses = np.repeat(np.arange(1, 9), 500)[:, np.newaxis]
+def svmsave(filenum):
+    dataset = readdata(filenum)
+    responses = np.repeat(np.arange(1, 9), filenum)[:, np.newaxis]
     svm = cv2.ml.SVM_create()
     svm.setKernel(cv2.ml.SVM_LINEAR)
     svm.setType(cv2.ml.SVM_C_SVC)
@@ -106,8 +106,9 @@ def predictShow(svm, testsample):
     result = svm.predict(l)[1]
     return result
 
-
 if __name__ == "__main__":
-    svm = cv2.ml.SVM_load('svm_data.dat')
-    testsample = np.load("F:\\traindata\\1\\1.npy")
-    predictShow(svm, testsample)
+    # train mode
+    # svm = cv2.ml.SVM_load('svm_data.dat')
+    svmsave(1500) 
+    # testsample = np.load("F:\\traindata\\1\\1.npy")
+    # predictShow(svm, testsample)

@@ -28,7 +28,7 @@ def light_aspect_det(rect):
     if w > h:
         w, h = h, w
     aspect = w/h
-    return 0.06 < aspect < 0.3, aspect
+    return 0.06 < aspect < 0.5, aspect
 
 
 def aim_color_mean(area, mask, color):
@@ -64,7 +64,7 @@ def light_detect(image, color):
         l_, aspect = light_aspect_det(rect)
         if not l_:
             msg = "aspect{0:.1f}-{1:.1f}-{2:.1f}".format(aspect, w, h)
-            cv2.putText(image, msg, (int(x), int(y)), font, 0.4, (0, 255, 0), 1)
+            # cv2.putText(image, msg, (int(x), int(y)), font, 0.4, (0, 255, 0), 1)
             continue
 
         x, y, w, h = cv2.boundingRect(contour)
@@ -74,7 +74,7 @@ def light_detect(image, color):
         c_, value = aim_color_mean(area, mask, color)
         if False in c_:
             msg = "value{0:.0f},{1:.0f},{2:.0f}".format(value[0], value[1], value[2])
-            cv2.putText(image, msg, (x, y-15), font, 0.4, (0, 255, 0), 1)
+            # cv2.putText(image, msg, (x, y-15), font, 0.4, (0, 255, 0), 1)
             continue
         group.append(rect)
     return pretreatment, group

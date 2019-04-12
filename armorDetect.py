@@ -35,7 +35,7 @@ def armor_aspect_det(x_l, y_l, x_r, y_r, l_l, l_r, w_l, w_r):
     输出：True 或者 False 以及 装甲横纵比
     """
     armor_aspect = math.sqrt((y_r-y_l)**2 + (x_r-x_l)**2) / max(l_l, l_r, w_l, w_r)
-    return 4.0 >= armor_aspect >= 0.9, armor_aspect
+    return 4 >= armor_aspect >= 0.9, armor_aspect
 
 
 def light_dist(l_l, l_r):
@@ -110,8 +110,6 @@ def ortho_angle(vec_mid, vec_light_l, vec_light_r):
     return_flag = (abs(angle_l) < 0.3 and
                    abs(angle_r) < 0.3 and
                    abs(angle_p) > 0.9)
-    if not return_flag:
-        print(angle_l, angle_r, angle_p)
     if return_flag and debug_mode:
         print("angle_l = ", angle_l, "angle_r = ", angle_r, "midAngle = ", (angle_l + angle_r) / 2)
     # 范围 60~120度， 两个灯条都满足
@@ -160,7 +158,7 @@ def armor_detect(svm, frame, group, target_num, train_mode=False, file="F:\\trai
             vec_mid, vec_light_l, vec_light_r = ortho_pixel(frame, l_pixel, r_pixel)
             o_, ortho_l_value, ortho_r_value, angle_p = ortho_angle(vec_mid, vec_light_l, vec_light_r)  # 垂直判断：< 0.9
             if not o_:
-                print("angle_p=", angle_p)
+                print("ortho_l_value=", ortho_l_value,"ortho_r_value=", ortho_r_value, "angle_p=", angle_p)
                 continue
             x = sorted(np.append(l_pixel[0:4, 0], r_pixel[0:4, 0]))
             y = sorted(np.append(l_pixel[0:4, 1], r_pixel[0:4, 1]))
