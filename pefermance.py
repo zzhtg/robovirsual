@@ -5,14 +5,16 @@ import numpy as np
 import KalmanPredict as kp
 
 
-def put_cross_focus(frame):
+def put_cross_focus(frame, midx, midy):
     """
     :param frame: 输入帧图像
     :return: 画图后的图像
     :function: 画出十字线和准星
     """
-    cv2.line(frame, (320, 0), (320, 479), (255, 255, 255), 3)
-    cv2.line(frame, (0, 240), (639, 240), (255, 255, 255), 3)
+    x = int(midx)
+    y = int(midy)
+    cv2.line(frame, (x, 0), (x, 2 * y-1), (255, 255, 255), 3)
+    cv2.line(frame, (0, y), (2 * x-1, y), (255, 255, 255), 3)
     return frame
 
 

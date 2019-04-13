@@ -41,14 +41,18 @@ def main():
     """ 
     输入：cam(摄像头选取参数) 功能：主程序 输出：无 
     """ 
-    global midx, midy, recognize_num
+    global midx, midy, recognize_num, frame_x, frame_y
     global serial_give, cap, color
-    svm = cv2.ml.SVM_load('.\\svm_data.dat')
+    svm = cv2.ml.SVM_load('./svm_data.dat')
     matrix, kalman = kp.kalman_init()
     interval = 1.0
+
     while cap.isOpened(): 
         start = time.clock()
+        midx = frame_x / 2 # 默认发中心坐标的值，如果没有识别到
+        midy = frame_y / 2
         _, frame = cap.read()
+        frame = frame[midx-320: midx+320, midy-240: midy+320]
         gray, group = ld.light_detect(frame, color)
         coordinate = ad.armor_detect(svm, frame, group, target_num)
         entire = pf.put_success(frame, interval, coordinate, pf.count)
@@ -57,9 +61,9 @@ def main():
                 midx = math.ceil((a + x) / 2)
                 midy = math.ceil((b + y) / 2)
                 pf.show_kalman(frame, coordinate, matrix, kalman, kp.error, kp.real_error)
-        frame = pf.put_cross_focus(frame)
+        frame = pf.put_cross_focus(frame, frame_x / 2, frame_y / 2)
         cv2.imshow("frame", frame)
-        key = cv2.waitKey(5)
+        key = cv2.waitKey(3)
 
         if key is ord('r') or key is ord('b'):
             color = key
@@ -68,28 +72,25 @@ def main():
             cap.release()   # 摄像头关闭
             break
         interval = time.clock()-start
+        print("timeused = ", 1.0/interval)
 
 
 if __name__ == "__main__":
-    # camera load
-    try:
-        cam = sys.argv[1]
-    except:
-        cam = 0
-    cap = cv2.VideoCapture(cam,cv2.CAP_DSHOW)
     # global variable
-    cap.set(3, 1920)
-    cap.set(4, 1080)
-    cap.set(14, -7)
+    frame_x = 1920
+    frame_y = 1080
     color = 98  # 114: red, 98: blue
     ad.debug_mode = False
     serial_give = False
-    midx = 320
-    midy = 240
     ser = 0
     target_num = 3
     recognize_num = 0
     key = 0
+    # camera load
+    cap = cv2.VideoCapture(1)
+    cap.set(3, frame_x)
+    cap.set(4, frame_y)
+    # cap.set(15, -7)
     # if or if not serial 
     if serial_give:
         ser = ss.serial_init(115200, 1)  # get a serial item, first arg is the boudrate, and the second is timeout
