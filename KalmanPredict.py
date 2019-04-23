@@ -35,6 +35,6 @@ def predict(matrix, kalman, error, real_error, frame, x1, y1, x2, y2):
     real_error.append(np.sqrt(cmx * cmx + cmy * cmy))
     cv2.rectangle(frame, (cmx - (x2 - x1) / 2, cmy - (y2 - y1) / 2), (cmx + (x2 - x1) / 2, cmy + (y2 - y1) / 2),
                   (0, 0, 255), 3)
-    cv2.rectangle(frame, (cpx-(x2-x1)/2, cpy-(y2-y1)/2), (cpx+(x2-x1)/2, cpy+(y2-y1)/2), (0, 255, 0), 3)
+    # cv2.rectangle(frame, (cpx-(x2-x1)/2, cpy-(y2-y1)/2), (cpx+(x2-x1)/2, cpy+(y2-y1)/2), (0, 255, 0), 3)
     matrix = [last_mes, current_mes, last_pre, current_pre]
     return matrix, error, real_error

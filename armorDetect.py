@@ -35,7 +35,7 @@ def armor_aspect_det(x_l, y_l, x_r, y_r, l_l, l_r, w_l, w_r):
     输出：True 或者 False 以及 装甲横纵比
     """
     armor_aspect = math.sqrt((y_r-y_l)**2 + (x_r-x_l)**2) / max(l_l, l_r, w_l, w_r)
-    return 4 >= armor_aspect >= 0.9, armor_aspect
+    return 7.0 >= armor_aspect >= 0.9, armor_aspect
 
 
 def light_dist(l_l, l_r):
@@ -46,20 +46,16 @@ def light_dist(l_l, l_r):
     """
     l_length_distance = (547.27 * 5.5) / (1 + l_l)
     r_length_distance = (547.27 * 5.5) / (1 + l_r)
-    return min(l_length_distance, r_length_distance)
-
+    return max(l_length_distance, r_length_distance)
 
 angle_bias = 0
-debug_mode = False
 
-
-def ortho_pixel(frame, l_pixel, r_pixel):
+def ortho_pixel(frame, l_pixel, r_pixel, debug_mode = False):
     """
     输入：左右灯条的四个点坐标
     功能：找到左右灯条和中心矢量的对应两个坐标
     输出：中心线、左灯条、右灯条两个坐标
     """
-    global debug_mode
     lxmid = np.average(l_pixel[0:4, 0])
     lymid = np.average(l_pixel[0:4, 1])
     rxmid = np.average(r_pixel[0:4, 0])
@@ -84,22 +80,24 @@ def ortho_pixel(frame, l_pixel, r_pixel):
     return vec_mid, vec_light_l, vec_light_r
 
 
-def ortho_angle(vec_mid, vec_light_l, vec_light_r):
+def ortho_angle(vec_mid, vec_light_l, vec_light_r, debug_mode = False):
     """
     输入：获取左右灯条和中心线的两个坐标
     功能：计算两个灯条的中心连接矢量和两个灯条方向矢量的正交性
     输出：True or False , 左右灯条方向矢量与中心连接矢量的夹角
     """
-    global angle_bias, debug_mode
-
+    global angle_bias
     vec_mid = [vec_mid[0][i] - vec_mid[1][i] for i in range(2)]
     vec_light_l = [vec_light_l[0][i] - vec_light_l[1][i] for i in range(2)]
     vec_light_r = [vec_light_r[0][i] - vec_light_r[1][i] for i in range(2)]
-
     abs_c = math.sqrt(vec_mid[0]**2 + vec_mid[1]**2)
     abs_l = math.sqrt(vec_light_l[0]**2 + vec_light_l[1]**2)
     abs_r = math.sqrt(vec_light_r[0]**2 + vec_light_r[1]**2)
-
+    # 测距， 使用 k /（图像长度 / 实际长度 + 图像长度 / 实际宽度） / 2
+    long_rate = abs_c / 13
+    short_rate = (abs_l + abs_r) / 4.5
+    dist = 3500.0 / (long_rate + short_rate)
+    # print("long= ", long_rate, "short = ", short_rate, "dis = ", )
     inl = (vec_mid[0] * vec_light_l[0] + vec_mid[1] * vec_light_l[1])   # 内积
     inr = (vec_mid[0] * vec_light_r[0] + vec_mid[1] * vec_light_r[1])
     inp = (vec_light_l[0]*vec_light_r[0] + vec_light_l[1] * vec_light_r[1])
@@ -107,13 +105,13 @@ def ortho_angle(vec_mid, vec_light_l, vec_light_r):
     angle_r = inr / (abs_c * abs_r)      # 右向量与中心向量的夹角
     angle_p = inp / (abs_l * abs_r)      # 左右向量夹角
     angle_bias = (math.atan2(vec_mid[0], vec_mid[1]) / math.pi * 180.0)
-    return_flag = (abs(angle_l) < 0.3 and
-                   abs(angle_r) < 0.3 and
+    return_flag = (abs(angle_l) < 0.2 and
+                   abs(angle_r) < 0.2 and
                    abs(angle_p) > 0.9)
     if return_flag and debug_mode:
         print("angle_l = ", angle_l, "angle_r = ", angle_r, "midAngle = ", (angle_l + angle_r) / 2)
     # 范围 60~120度， 两个灯条都满足
-    return return_flag, angle_l, angle_r, angle_p
+    return return_flag, angle_l, angle_r, angle_p, (dist, long_rate, short_rate)
 
 
 def svm_digit_detect(target_num, detect_num):
@@ -140,6 +138,8 @@ def armor_detect(svm, frame, group, target_num, train_mode=False, file="F:\\trai
             if w_r > l_r:
                 w_r, l_r = l_r, w_r
 
+            cv2.putText(image, "dist:{0}".format(light_dist(l_l, l_r)), (int(x_l), int(y_l)), cv2.FONT_ITALIC, 0.4, (255, 255, 255), 1)
+
             l_, length_dif = length_dif_det(l_l, l_r)   # 长度差距判断：两灯条的长度差 / 长一点的那个长度 < 36%
             if not l_:
                 print("length_dif=", length_dif)
@@ -156,7 +156,7 @@ def armor_detect(svm, frame, group, target_num, train_mode=False, file="F:\\trai
             r_pixel = cv2.boxPoints(group[right])
             # 第一个y值最大，第三个y值最小，第二个x值最小，第四个x值最大
             vec_mid, vec_light_l, vec_light_r = ortho_pixel(frame, l_pixel, r_pixel)
-            o_, ortho_l_value, ortho_r_value, angle_p = ortho_angle(vec_mid, vec_light_l, vec_light_r)  # 垂直判断：< 0.9
+            o_, ortho_l_value, ortho_r_value, angle_p, dist_group = ortho_angle(vec_mid, vec_light_l, vec_light_r)  # 垂直判断：< 0.9
             if not o_:
                 print("ortho_l_value=", ortho_l_value,"ortho_r_value=", ortho_r_value, "angle_p=", angle_p)
                 continue
@@ -188,6 +188,9 @@ def armor_detect(svm, frame, group, target_num, train_mode=False, file="F:\\trai
                     continue
             else:
                 st.savetrain(hog_trait, filename=file)
+            # distance output
+            (dist, long_rate, short_rate) = dist_group
+            print(dist)
             if armor is not None:
                 area.append(armor)
     return area

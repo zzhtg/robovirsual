@@ -55,7 +55,7 @@ def image2hog(digit, preview = False):
     hogdata = hog(traininput)
     return hogdata
 
-def savetrain(hogdata, endcount = 1500, filename = "F:\\traindata", trainmsg = True): # 保存训练集
+def savetrain(hogdata, endcount = 2000, filename = "F:\\traindata", trainmsg = True): # 保存训练集
     """
     function:   训练识别到的数字图像
     :param digit:原始数字图像
@@ -109,6 +109,6 @@ def predictShow(svm, testsample):
 if __name__ == "__main__":
     # train mode
     # svm = cv2.ml.SVM_load('svm_data.dat')
-    svmsave(1500) 
+    svmsave(2000)
     # testsample = np.load("F:\\traindata\\1\\1.npy")
     # predictShow(svm, testsample)

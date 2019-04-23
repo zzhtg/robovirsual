@@ -9,7 +9,7 @@ MODE = {"PITCH": 0x11, "YAW": 0x12}     # choose which Axis of Stm32 Robocloud t
 
 def serial_send(ser, raw_pitch, raw_yaw):
     Msg = process(raw_pitch, raw_yaw)
-    ser.w_rite(Msg.encode("ascii"))
+    ser.write(Msg.encode("ascii"))
     return Msg
 
 

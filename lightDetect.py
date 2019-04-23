@@ -40,9 +40,9 @@ def aim_color_mean(area, mask, color):
     value = cv2.mean(area, mask)
     _c = False
     if color is 114:
-        _c = (60 <= value[0] <= 160, 150 <= value[1] <= 220, 240 <= value[2] <= 255)
+        _c = (60 <= value[0] <= 180, 110 <= value[1] <= 220, 220 <= value[2] <= 255)
     if color is 98:
-        _c = (240 <= value[0] <= 255, 150 <= value[1] <= 250, 60 <= value[2] <= 240)
+        _c = (220 <= value[0] <= 255, 150 <= value[1] <= 250, 60 <= value[2] < 255)
     return _c, value
 
 
@@ -54,6 +54,7 @@ def light_detect(image, color):
     """
     group = []
     pretreatment = frame_ready(image)
+    cv2.imshow("ready", pretreatment)
     font = cv2.FONT_ITALIC
     # cv2 4.0.0 finContours返回轮廓和层级
     # cv2 3 finContours 返回图像、轮廓和层级
@@ -74,7 +75,7 @@ def light_detect(image, color):
         c_, value = aim_color_mean(area, mask, color)
         if False in c_:
             msg = "value{0:.0f},{1:.0f},{2:.0f}".format(value[0], value[1], value[2])
-            # cv2.putText(image, msg, (x, y-15), font, 0.4, (0, 255, 0), 1)
+            cv2.putText(image, msg, (x, y-15), font, 0.4, (0, 255, 0), 1)
             continue
         group.append(rect)
     return pretreatment, group
