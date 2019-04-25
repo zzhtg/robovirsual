@@ -4,6 +4,7 @@ import numpy as np
 import math
 import pefermance as pf
 import SvmTrain as st
+import KalmanPredict as kp
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
 length_threshold = 1.0
@@ -11,6 +12,23 @@ width_threshold = 1.0
 aspect_threshold = [0.9, 7.0]
 ortho_threshold = [0.2, 0.2, 0.9]
 target_num = 1
+debug_mode = False
+error_text = False
+class Armor():
+    def __init__(self, pos, dist, length, width, aspect, ortho, num, lightL, lightR):
+        self.pos = pos
+        [a, b, x, y] = self.pos
+        self.mid = [math.ceil((a + x) / 2), math.ceil((b + y) / 2)]  # 装甲中心坐标
+        self.dist = dist          # 距离
+        self.length = length      # 灯条长度比
+        self.width = width        # 灯条宽度比
+        self.aspect = aspect      # 装甲长宽比
+        self.ortho = ortho        # 正交率
+        self.digit = num          # 识别出来的数字
+        self.lightL = lightL      # 左灯条类      
+        self.lightR = lightR      # 右灯条类 
+    def show(self, frame, kalman, KalmanPreview = False):
+        kalman.predict(frame, self.pos, KalmanPreview)
 def length_dif_det(l_left, l_right):
     """
     输入：l_left（左灯条长度）、l_right（右灯条长度）
@@ -42,7 +60,7 @@ def armor_aspect_det(x_l, y_l, x_r, y_r, l_l, l_r, w_l, w_r):
 
 angle_bias = 0
 
-def ortho_pixel(frame, l_pixel, r_pixel, debug_mode = False):
+def ortho_pixel(frame, l_pixel, r_pixel):
     """
     输入：左右灯条的四个点坐标
     功能：找到左右灯条和中心矢量的对应两个坐标
@@ -72,7 +90,7 @@ def ortho_pixel(frame, l_pixel, r_pixel, debug_mode = False):
     return vec_mid, vec_light_l, vec_light_r
 
 
-def ortho_angle(vec_mid, vec_light_l, vec_light_r, debug_mode = False):
+def ortho_angle(vec_mid, vec_light_l, vec_light_r):
     """
     输入：获取左右灯条和中心线的两个坐标
     功能：计算两个灯条的中心连接矢量和两个灯条方向矢量的正交性
@@ -119,21 +137,24 @@ def armor_detect(svm, frame, group, train_mode=False, file="F:\\traindata\\"):
     lens = len(group)
     for left in range(lens):
         for right in range(left + 1, lens):
+            if(group[left].rect[0] > group[right].rect[0]):
+                left, right = right, left 
             [x_l, y_l, long_l, short_l] = group[left].rect
             [x_r, y_r, long_r, short_r] = group[right].rect
-            if(x_l < x_r):
-                left, right = right, left 
             l_, length_dif = length_dif_det(long_l, long_r)   # 长度差距判断：两灯条的长度差 / 长一点的那个长度 < 36%
             if not l_:
-                print("length_dif=", length_dif)
+                if(error_text):
+                    print("length_dif=", length_dif)
                 continue
             w_, width_dif = width_dif_det(short_l, short_r)     # 宽度差距判断：两灯条的宽度差 / 长一点的那个长度 < 68%
             if not w_:
-                print("width_dif=", width_dif)
+                if(error_text):
+                    print("width_dif=", width_dif)
                 continue
             a_, armor_aspect = armor_aspect_det(x_l, y_l, x_r, y_r, long_l, long_r, short_l, short_r)  # 横纵比判断：2.7~4.5
             if not a_:
-                print("armor_aspect=", armor_aspect)
+                if(error_text):
+                    print("armor_aspect=", armor_aspect)
                 continue
             l_pixel = cv2.boxPoints(group[left].raw)
             r_pixel = cv2.boxPoints(group[right].raw)
@@ -141,11 +162,12 @@ def armor_detect(svm, frame, group, train_mode=False, file="F:\\traindata\\"):
             vec_mid, vec_light_l, vec_light_r = ortho_pixel(frame, l_pixel, r_pixel)
             o_, ortho_l_value, ortho_r_value, angle_p, dist_group = ortho_angle(vec_mid, vec_light_l, vec_light_r)  # 垂直判断：< 0.9
             if not o_:
-                print("ortho_l_value=", ortho_l_value,"ortho_r_value=", ortho_r_value, "angle_p=", angle_p)
+                if(error_text):
+                    print("ortho_l_value=", ortho_l_value,"ortho_r_value=", ortho_r_value, "angle_p=", angle_p)
                 continue
             x = sorted(np.append(l_pixel[0:4, 0], r_pixel[0:4, 0]))
             y = sorted(np.append(l_pixel[0:4, 1], r_pixel[0:4, 1]))
-            armor = [i for i in [x[0], y[0], x[7], y[7]]]
+            pos = [i for i in [x[0], y[0], x[7], y[7]]]
 
             # digit detection
             h = (long_l+long_r)/2
@@ -161,19 +183,20 @@ def armor_detect(svm, frame, group, train_mode=False, file="F:\\traindata\\"):
             digit = image[x1: y1, x2: y2]
 
             if sum(np.shape(digit)) == 0:
-                print(np.shape(digit))
                 continue
             hog_trait = st.image2hog(digit)
             if not train_mode:  # 如果开启了训练模式,会读取设定保存的文件目录,然后识别时不经过数字判断
                 n_, num = svm_digit_detect(target_num, st.predictShow(svm, hog_trait))
                 if not n_:
-                    print("wrong digit=", num[0][0])
+                    if(error_text):
+                        print("wrong digit=", num[0][0])
                     continue
             else:
                 st.savetrain(hog_trait, filename=file)
             # distance output
             (dist, long_rate, short_rate) = dist_group
             print(dist)
-            if armor is not None:
+            if pos is not None:
+                armor = Armor(pos, dist, length_dif, width_dif, armor_aspect, [ortho_l_value, ortho_r_value, angle_p], num, group[left], group[right])
                 area.append(armor)
     return area

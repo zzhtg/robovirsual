@@ -61,8 +61,8 @@ def fps_count(fps):
     print("min fps = {0:0.1f}".format(fps[0]))
 
 
-def show_kalman(frame, coordinate, matrix, kalman, error, real_error):
-    if coordinate:
-        x, y, w, h = coordinate[0][0:4]
-        matrix, error, real_error = kp.predict(matrix, kalman, error, real_error, frame, x, y, w, h)
+def show_kalman(frame, pos, matrix, kalman, error, real_error, preview = False):
+    if pos:
+        x, y, w, h = pos
+        matrix, error, real_error = kp.predict(matrix, kalman, error, real_error, frame, x, y, w, h, preview)
 

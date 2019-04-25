@@ -43,8 +43,8 @@ def main():
     """ 
     global midx, midy, recognize_num, frame_x, frame_y
     global key, serial_give, cap, color
-    svm = cv2.ml.SVM_load('./svm_data.dat')
-    matrix, kalman = kp.kalman_init()
+    svm = cv2.ml.SVM_load('./svm_data.dat') # 读取svm参数
+    kalman = kp.Kalman_Filter() # 卡尔曼滤波器类初始化
     interval = 1.0
     # 配置灯条检测预处理参数
     ld.frame_threshold = [150, 255]             # 二值化阈值
@@ -59,19 +59,21 @@ def main():
     ad.aspect_threshold = [0.9, 7.0]            # 长宽比
     ad.ortho_threshold = [0.2, 0.2, 0.9]        # 正交率阈值(angle_l,angle_r,angle_p)
     ad.detect_num = 1                           # 要检测的数字
+    ad.debug_mode = False						# 正交率划线显示
+    ad.error_text = False						# 检测错误输出文本
     while cap.isOpened(): 
         start = time.clock()
         _, frame = cap.read()
-        # frame = frame[int(frame_y/2)-240: int(frame_y/2)+240, int(frame_x/2)-320: int(frame_x/2)+320]
+        if not EntireWindow: # 全视窗模式 1080p，如果不开的话就是默认截取中间的640x480
+            frame = frame[int(frame_y/2)-240: int(frame_y/2)+240, int(frame_x/2)-320: int(frame_x/2)+320]
         gray, group = ld.light_detect(frame, color)
         # coordinate = ad.armor_detect(svm, frame, group, train_mode=True, file="F:\\traindata\\"+str(target_num)) # 训练用，需要修改保存训练集目录
         coordinate = ad.armor_detect(svm, frame, group)
         entire = pf.put_success(frame, interval, coordinate, pf.count)
         if coordinate:
-            for [a, b, x, y] in coordinate:
-                midx = math.ceil((a + x) / 2)
-                midy = math.ceil((b + y) / 2)
-                pf.show_kalman(frame, coordinate, matrix, kalman, kp.error, kp.real_error)
+            for armor in coordinate:
+                [midx, midy] = armor.mid
+                armor.show(frame, kalman, KalmanPreview = True)
         else:
             midx = 320
             midy = 240
@@ -90,11 +92,11 @@ def main():
 
 if __name__ == "__main__":
     # global variable
-    frame_x = 1920
+    frame_x = 1920  # 全视窗模式分辨率
     frame_y = 1080
-    midx = 320
+    midx = 320      # 非全视窗模式分辨率 
     midy = 240
-    color = 98  # 114: red, 98: blue
+    color = 98      # 114: red, 98: blue
     ad.debug_mode = True
     serial_give = False
     ser = 0
@@ -105,9 +107,8 @@ if __name__ == "__main__":
     cap = cv2.VideoCapture(0)
     cap.set(3, frame_x)
     cap.set(4, frame_y)
-    cap.set(15, -8)
-    for i in range(19):
-    	print(cap.get(i))
+    cap.set(15, -8)     # 曝光度最低为-8
+    EntireWindow = False # 全视窗模式
     # if or if not serial 
     if serial_give:
         ser = ss.serial_init(115200, 1)  # get a serial item, first arg is the boudrate, and the second is timeout
