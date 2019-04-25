@@ -46,16 +46,26 @@ def main():
     svm = cv2.ml.SVM_load('./svm_data.dat')
     matrix, kalman = kp.kalman_init()
     interval = 1.0
-
+    # 配置灯条检测预处理参数
+    ld.frame_threshold = [150, 255]             # 二值化阈值
+    ld.aspect_threshold = [0.06, 0.5]           # 长宽比阈值
+    ld.red_down_threshold = [60, 110, 220]      # 红色阈值下界
+    ld.red_up_threshold = [180, 220, 255]       # 红色阈值上界
+    ld.blue_down_threshold = [210, 150, 60]     # 蓝色阈值下界
+    ld.blue_up_threshold = [255, 250, 255]      # 蓝色阈值上界
+    # 配置装甲检测参数
+    ad.length_threshold = 1.0                   # 灯条长度比
+    ad.width_threshold = 1.0                    # 灯条宽度比
+    ad.aspect_threshold = [0.9, 7.0]            # 长宽比
+    ad.ortho_threshold = [0.2, 0.2, 0.9]        # 正交率阈值(angle_l,angle_r,angle_p)
+    ad.detect_num = 1                           # 要检测的数字
     while cap.isOpened(): 
         start = time.clock()
-        #midx = 320 # 默认发中心坐标的值，如果没有识别到
-        #midy = 240
         _, frame = cap.read()
-        frame = frame[int(frame_y/2)-240: int(frame_y/2)+240, int(frame_x/2)-320: int(frame_x/2)+320]
+        # frame = frame[int(frame_y/2)-240: int(frame_y/2)+240, int(frame_x/2)-320: int(frame_x/2)+320]
         gray, group = ld.light_detect(frame, color)
-        # coordinate = ad.armor_detect(svm, frame, group, target_num, train_mode=True, file="F:\\traindata\\"+str(target_num))
-        coordinate = ad.armor_detect(svm, frame, group, target_num)
+        # coordinate = ad.armor_detect(svm, frame, group, train_mode=True, file="F:\\traindata\\"+str(target_num)) # 训练用，需要修改保存训练集目录
+        coordinate = ad.armor_detect(svm, frame, group)
         entire = pf.put_success(frame, interval, coordinate, pf.count)
         if coordinate:
             for [a, b, x, y] in coordinate:
@@ -65,7 +75,7 @@ def main():
         else:
             midx = 320
             midy = 240
-        frame = pf.put_cross_focus(frame, np.shape(frame)[1] / 2, np.shape(frame)[0] / 2)
+        frame = pf.put_cross_focus(frame, np.shape(frame)[1] / 2, np.shape(frame)[0] / 2) 
         cv2.imshow("frame", frame)
         key = cv2.waitKey(3)
 
@@ -84,9 +94,9 @@ if __name__ == "__main__":
     frame_y = 1080
     midx = 320
     midy = 240
-    color = 114  # 114: red, 98: blue
+    color = 98  # 114: red, 98: blue
     ad.debug_mode = True
-    serial_give = True 
+    serial_give = False
     ser = 0
     target_num = 1
     recognize_num = 1
@@ -95,7 +105,9 @@ if __name__ == "__main__":
     cap = cv2.VideoCapture(0)
     cap.set(3, frame_x)
     cap.set(4, frame_y)
-    cap.set(15, -7)
+    cap.set(15, -8)
+    for i in range(19):
+    	print(cap.get(i))
     # if or if not serial 
     if serial_give:
         ser = ss.serial_init(115200, 1)  # get a serial item, first arg is the boudrate, and the second is timeout

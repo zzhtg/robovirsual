@@ -6,15 +6,18 @@ import pefermance as pf
 import SvmTrain as st
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
-
-
+length_threshold = 1.0
+width_threshold = 1.0
+aspect_threshold = [0.9, 7.0]
+ortho_threshold = [0.2, 0.2, 0.9]
+target_num = 1
 def length_dif_det(l_left, l_right):
     """
     输入：l_left（左灯条长度）、l_right（右灯条长度）
     功能：检测当前灯条组合是否符合长度差距条件
     输出：True 或者 False 以及 长度宽度比 """
     length_dif = abs(l_left-l_right) / max(l_left, l_right)
-    return length_dif <= 1.0, length_dif
+    return length_dif <= length_threshold, length_dif
 
 
 def width_dif_det(w_left, w_right):
@@ -25,7 +28,7 @@ def width_dif_det(w_left, w_right):
     """
     w_left, w_right = [i+1 for i in [w_left, w_right]]
     width_dif = abs(w_left-w_right) / max(w_left, w_right)
-    return width_dif <= 1.0, width_dif
+    return width_dif <= width_threshold, width_dif
 
 
 def armor_aspect_det(x_l, y_l, x_r, y_r, l_l, l_r, w_l, w_r):
@@ -35,18 +38,7 @@ def armor_aspect_det(x_l, y_l, x_r, y_r, l_l, l_r, w_l, w_r):
     输出：True 或者 False 以及 装甲横纵比
     """
     armor_aspect = math.sqrt((y_r-y_l)**2 + (x_r-x_l)**2) / max(l_l, l_r, w_l, w_r)
-    return 7.0 >= armor_aspect >= 0.9, armor_aspect
-
-
-def light_dist(l_l, l_r):
-    """
-    输入：左右灯条的像素长度
-    功能：计算摄像头到灯条的距离
-    输出：比较近的那个灯条的距离
-    """
-    l_length_distance = (547.27 * 5.5) / (1 + l_l)
-    r_length_distance = (547.27 * 5.5) / (1 + l_r)
-    return max(l_length_distance, r_length_distance)
+    return aspect_threshold[1] >= armor_aspect >= aspect_threshold[0], armor_aspect
 
 angle_bias = 0
 
@@ -105,20 +97,18 @@ def ortho_angle(vec_mid, vec_light_l, vec_light_r, debug_mode = False):
     angle_r = inr / (abs_c * abs_r)      # 右向量与中心向量的夹角
     angle_p = inp / (abs_l * abs_r)      # 左右向量夹角
     angle_bias = (math.atan2(vec_mid[0], vec_mid[1]) / math.pi * 180.0)
-    return_flag = (abs(angle_l) < 0.2 and
-                   abs(angle_r) < 0.2 and
-                   abs(angle_p) > 0.9)
+    return_flag = (abs(angle_l) < ortho_threshold[0] and
+                   abs(angle_r) < ortho_threshold[1] and
+                   abs(angle_p) > ortho_threshold[2])
     if return_flag and debug_mode:
         print("angle_l = ", angle_l, "angle_r = ", angle_r, "midAngle = ", (angle_l + angle_r) / 2)
     # 范围 60~120度， 两个灯条都满足
     return return_flag, angle_l, angle_r, angle_p, (dist, long_rate, short_rate)
 
-
 def svm_digit_detect(target_num, detect_num):
     return target_num == detect_num, detect_num
 
-
-def armor_detect(svm, frame, group, target_num, train_mode=False, file="F:\\traindata\\"):
+def armor_detect(svm, frame, group, train_mode=False, file="F:\\traindata\\"):
     """
     输入：group（可能是灯条的矩形最小边界拟合信息）
     功能：一一对比矩形、找到可能的灯条组合作为装甲
@@ -129,31 +119,24 @@ def armor_detect(svm, frame, group, target_num, train_mode=False, file="F:\\trai
     lens = len(group)
     for left in range(lens):
         for right in range(left + 1, lens):
-            if group[left][0][0] > group[right][0][0]:
-                left, right = right, left
-            x_l, y_l, w_l, l_l = [j for i in group[left][0:2] for j in i]
-            x_r, y_r, w_r, l_r = [j for i in group[right][0:2] for j in i]
-            if w_l > l_l:
-                w_l, l_l = l_l, w_l
-            if w_r > l_r:
-                w_r, l_r = l_r, w_r
-
-            cv2.putText(image, "dist:{0}".format(light_dist(l_l, l_r)), (int(x_l), int(y_l)), cv2.FONT_ITALIC, 0.4, (255, 255, 255), 1)
-
-            l_, length_dif = length_dif_det(l_l, l_r)   # 长度差距判断：两灯条的长度差 / 长一点的那个长度 < 36%
+            [x_l, y_l, long_l, short_l] = group[left].rect
+            [x_r, y_r, long_r, short_r] = group[right].rect
+            if(x_l < x_r):
+                left, right = right, left 
+            l_, length_dif = length_dif_det(long_l, long_r)   # 长度差距判断：两灯条的长度差 / 长一点的那个长度 < 36%
             if not l_:
                 print("length_dif=", length_dif)
                 continue
-            w_, width_dif = width_dif_det(w_l, w_r)     # 宽度差距判断：两灯条的宽度差 / 长一点的那个长度 < 68%
+            w_, width_dif = width_dif_det(short_l, short_r)     # 宽度差距判断：两灯条的宽度差 / 长一点的那个长度 < 68%
             if not w_:
                 print("width_dif=", width_dif)
                 continue
-            a_, armor_aspect = armor_aspect_det(x_l, y_l, x_r, y_r, l_l, l_r, w_l, w_r)  # 横纵比判断：2.7~4.5
+            a_, armor_aspect = armor_aspect_det(x_l, y_l, x_r, y_r, long_l, long_r, short_l, short_r)  # 横纵比判断：2.7~4.5
             if not a_:
                 print("armor_aspect=", armor_aspect)
                 continue
-            l_pixel = cv2.boxPoints(group[left])
-            r_pixel = cv2.boxPoints(group[right])
+            l_pixel = cv2.boxPoints(group[left].raw)
+            r_pixel = cv2.boxPoints(group[right].raw)
             # 第一个y值最大，第三个y值最小，第二个x值最小，第四个x值最大
             vec_mid, vec_light_l, vec_light_r = ortho_pixel(frame, l_pixel, r_pixel)
             o_, ortho_l_value, ortho_r_value, angle_p, dist_group = ortho_angle(vec_mid, vec_light_l, vec_light_r)  # 垂直判断：< 0.9
@@ -165,7 +148,7 @@ def armor_detect(svm, frame, group, target_num, train_mode=False, file="F:\\trai
             armor = [i for i in [x[0], y[0], x[7], y[7]]]
 
             # digit detection
-            h = (l_l+l_r)/2
+            h = (long_l+long_r)/2
             x1, y1, x2, y2 = int((y[0] + y[7]) / 2 - h), int((y[0] + y[7]) / 2 + h), int(
                                 (x[0] + x[7]) / 2 - h * 0.75), int((x[0] + x[7]) / 2 + h * 0.75)
             min_digit = 0
