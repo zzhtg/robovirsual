@@ -40,5 +40,5 @@ class Kalman_Filter():
         self.real_error.append(np.sqrt(cmx * cmx + cmy * cmy))
         cv2.rectangle(frame, (cmx - (x2 - x1) / 2, cmy - (y2 - y1) / 2), (cmx + (x2 - x1) / 2, cmy + (y2 - y1) / 2),
                       (0, 0, 255), 3)
-        # if(preview):
-        #     cv2.rectangle(frame, (cpx-(x2-x1)/2, cpy-(y2-y1)/2), (cpx+(x2-x1)/2, cpy+(y2-y1)/2), (0, 255, 0), 3)
+        if(preview):
+            cv2.rectangle(frame, (cpx-(x2-x1)/2, cpy-(y2-y1)/2), (cpx+(x2-x1)/2, cpy+(y2-y1)/2), (0, 255, 0), 3)

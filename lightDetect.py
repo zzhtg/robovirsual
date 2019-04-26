@@ -28,7 +28,7 @@ def frame_ready(image, preview = False):
     kernel = np.ones((5, 5), np.uint8)
     image = cv2.erode(cv2.dilate(image, kernel, iterations=1), kernel, iterations=1)
     if(preview):
-    	cv2.imshow("ready", pretreatment)
+    	cv2.imshow("ready", image)
     return image
 
 def detect(image, pretreatment, contour, color):
@@ -80,14 +80,14 @@ def detect(image, pretreatment, contour, color):
 		return False
 	return rect, value, aspect
 
-def light_detect(image, color):
+def light_detect(image, color, preview = False):
     """
     输入：image(当前帧图像)、color(装甲颜色)
     功能：找到符合颜色、横纵比条件的类似灯条的矩形
     输出：符合条件的矩形（最小边界拟合信息）的列表，不一定就是灯条
     """
     group = []
-    pretreatment = frame_ready(image)
+    pretreatment = frame_ready(image, preview)
     # cv2 4.0.0 finContours返回轮廓和层级
     # cv2 3 finContours 返回图像、轮廓和层级
     # 修改1 为 0即可

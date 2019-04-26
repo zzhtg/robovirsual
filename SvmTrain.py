@@ -61,7 +61,6 @@ def savetrain(hogdata, endcount = 2000, filename = "F:\\traindata", trainmsg = T
     :param digit:原始数字图像
     :param endcount:目录下文件到达这个值就会不再保存并输出错误信息
     :param filename:保存目录
-    :param preview:打开预览
     :param trainmsg:打开保存信息输出预览，显示保存到第几个文件
     :return:
     """
@@ -93,7 +92,7 @@ def svmsave(filenum):
     dataset = readdata(filenum)
     responses = np.repeat(np.arange(1, 9), filenum)[:, np.newaxis]
     svm = cv2.ml.SVM_create()
-    svm.setKernel(cv2.ml.SVM_LINEAR)
+    svm.setKernel(cv2.ml.SVM_RBF)
     svm.setType(cv2.ml.SVM_C_SVC)
     svm.setC(2.67)
     svm.setGamma(5.383)

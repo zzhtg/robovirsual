@@ -11,7 +11,7 @@ length_threshold = 1.0
 width_threshold = 1.0
 aspect_threshold = [0.9, 7.0]
 ortho_threshold = [0.2, 0.2, 0.9]
-target_num = 1
+target_num = None
 debug_mode = False
 error_text = False
 class Armor():
@@ -123,9 +123,6 @@ def ortho_angle(vec_mid, vec_light_l, vec_light_r):
     # 范围 60~120度， 两个灯条都满足
     return return_flag, angle_l, angle_r, angle_p, (dist, long_rate, short_rate)
 
-def svm_digit_detect(target_num, detect_num):
-    return target_num == detect_num, detect_num
-
 def armor_detect(svm, frame, group, train_mode=False, file="F:\\traindata\\"):
     """
     输入：group（可能是灯条的矩形最小边界拟合信息）
@@ -133,8 +130,9 @@ def armor_detect(svm, frame, group, train_mode=False, file="F:\\traindata\\"):
     输出：area（可能是装甲的矩形【长宽、左上角坐标,左右灯条长宽平均值】的列表）
     """
     image = frame.copy()
-    area = []
+    armorgroup = []
     lens = len(group)
+    num = 0
     for left in range(lens):
         for right in range(left + 1, lens):
             if(group[left].rect[0] > group[right].rect[0]):
@@ -160,7 +158,7 @@ def armor_detect(svm, frame, group, train_mode=False, file="F:\\traindata\\"):
             r_pixel = cv2.boxPoints(group[right].raw)
             # 第一个y值最大，第三个y值最小，第二个x值最小，第四个x值最大
             vec_mid, vec_light_l, vec_light_r = ortho_pixel(frame, l_pixel, r_pixel)
-            o_, ortho_l_value, ortho_r_value, angle_p, dist_group = ortho_angle(vec_mid, vec_light_l, vec_light_r)  # 垂直判断：< 0.9
+            o_, ortho_l_value, ortho_r_value, angle_p, dist_group = ortho_angle(vec_mid, vec_light_l, vec_light_r)
             if not o_:
                 if(error_text):
                     print("ortho_l_value=", ortho_l_value,"ortho_r_value=", ortho_r_value, "angle_p=", angle_p)
@@ -186,17 +184,21 @@ def armor_detect(svm, frame, group, train_mode=False, file="F:\\traindata\\"):
                 continue
             hog_trait = st.image2hog(digit)
             if not train_mode:  # 如果开启了训练模式,会读取设定保存的文件目录,然后识别时不经过数字判断
-                n_, num = svm_digit_detect(target_num, st.predictShow(svm, hog_trait))
-                if not n_:
-                    if(error_text):
-                        print("wrong digit=", num[0][0])
-                    continue
+                num = st.predictShow(svm, hog_trait)
+                num = int(num[0][0])
+                if(target_num is not None):
+                    n_ = (target_num == num)
+                    if not n_:
+                        if(error_text):
+                            print("wrong digit=", num)
+                        continue
             else:
                 st.savetrain(hog_trait, filename=file)
             # distance output
             (dist, long_rate, short_rate) = dist_group
-            print(dist)
             if pos is not None:
-                armor = Armor(pos, dist, length_dif, width_dif, armor_aspect, [ortho_l_value, ortho_r_value, angle_p], num, group[left], group[right])
-                area.append(armor)
-    return area
+                armor = Armor(pos, dist, length_dif, width_dif, armor_aspect,
+                              [ortho_l_value, ortho_r_value, angle_p],
+                              num, group[left], group[right])
+                armorgroup.append(armor)
+    return armorgroup
