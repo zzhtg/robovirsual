@@ -66,12 +66,12 @@ def main():
         _, frame = cap.read()
         if not EntireWindow: # 全视窗模式 1080p，如果不开的话就是默认截取中间的640x480
             frame = frame[int(frame_y/2)-240: int(frame_y/2)+240, int(frame_x/2)-320: int(frame_x/2)+320]
-        gray, group = ld.light_detect(frame, color, preview = True) # preview为显示预处理图像
+        gray, group = ld.light_detect(frame, color, preview = False) # preview为显示预处理图像
         # armorgroup = ad.armor_detect(svm, frame, group, train_mode=True, file="F:\\traindata\\"+str(target_num)) # 训练用，需要修改保存训练集目录
         armorgroup = ad.armor_detect(svm, frame, group)
         entire = pf.put_success(frame, interval, armorgroup, pf.count)
         if armorgroup:
-            armor = aj.judge(armorgroup, attack = aj.mid, args = None)
+            armor = aj.judge(armorgroup, attack = aj.near, args = None)
             [midx, midy] = armor.mid
             armor.show(frame, kalman, KalmanPreview = True)
             print(armor.digit, armor.dist)
@@ -80,7 +80,7 @@ def main():
             midy = 240
 
         frame = pf.put_cross_focus(frame, np.shape(frame)[1] / 2, np.shape(frame)[0] / 2) 
-        cv2.imshow("frame", frame)
+        # cv2.imshow("frame", frame)
 
         key = cv2.waitKey(3)
         if key is ord('r') or key is ord('b'):
@@ -90,7 +90,7 @@ def main():
             cap.release()   # 摄像头关闭
             break
         interval = time.clock()-start
-        # print("timeused = ", 1.0/interval)
+        print("timeused = ", 1.0/interval)
 
 if __name__ == "__main__":
     # global variable
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     cap.set(3, frame_x)
     cap.set(4, frame_y)
     cap.set(15, -8)      # 曝光度最低为-8
-    EntireWindow = False # 全视窗模式
+    EntireWindow = True # 全视窗模式
     # if or if not serial 
     if serial_give:
         ser = ss.serial_init(115200, 1)  # get a serial item, first arg is the boudrate, and the second is timeout

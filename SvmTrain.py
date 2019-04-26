@@ -92,7 +92,7 @@ def svmsave(filenum):
     dataset = readdata(filenum)
     responses = np.repeat(np.arange(1, 9), filenum)[:, np.newaxis]
     svm = cv2.ml.SVM_create()
-    svm.setKernel(cv2.ml.SVM_RBF)
+    svm.setKernel(cv2.ml.SVM_LINEAR)
     svm.setType(cv2.ml.SVM_C_SVC)
     svm.setC(2.67)
     svm.setGamma(5.383)
