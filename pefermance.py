@@ -1,11 +1,81 @@
 # coding=utf-8
-
 import cv2
-import numpy as np
+import time
 import KalmanPredict as kp
+count = {"perSucRatio": 0, "entire_success_ratio": 0, "alFrame": 0,
+         "alSuc": 0, "perFrame": 0, "perSuc": 0, "period": 30}
+
+class Tiktok():
+    def __init__(self):
+        self.start = 0.0
+        self.end = 0.0
+        self.interval = 1.0
+    def print(self):
+        print("FPS = ", self.interval)
+    def tik(self):
+        self.start = time.clock()
+    def tok(self):
+        self.end = time.clock()
+        self.interval = (self.end - self.start)
+    def put_success(self, frame, armorflag):
+        """
+        输入：frame(当前帧)、 armor(装甲列表)、count(计数成员字典)
+        功能：当前帧添加实时成功率与全过程成功率、画出装甲图像
+        输出：无
+        """
+        count["alFrame"] += 1
+        count["perFrame"] += 1
+        count["entire_success_ratio"] = count["alSuc"] / count["alFrame"]
+        if armorflag:
+            count["alSuc"] += 1
+            count["perSuc"] += 1
+        if count["alFrame"] % count["period"] is 0:
+            count["perSucRatio"] = count["perSuc"] / count["perFrame"]
+            count["perFrame"] = count["perSuc"] = 0
+        font = cv2.FONT_ITALIC
+        fps = 1.0 / self.interval
+        msg = "fps:{0:0.2f} real_time:{1:0.2f}  entire_time:{2:0.2f}".format(
+            fps, count["perSucRatio"], count["entire_success_ratio"])
+        cv2.putText(frame, msg, (50, 50), font, 0.8, (255, 255, 255), 2)
+        # return count["alFrame"]
+
+class Frame():
+    def __init__(self, ratex, ratey, framex, framey, EntireWindow,
+                 tiktok, focus = True, success = True, ):
+        self.entireflag = EntireWindow
+        self.ratex = ratex # 缩放窗口大小 640 x 480
+        self.ratey = ratey
+        self.framex = framex
+        self.framey = framey
+        self.focus = focus
+        self.success = success
+        self.tiktok = tiktok
+
+    def update(self, cap):
+        _, img = cap.read()
+        if(self.entireflag):
+            self.img = img # 完整模式
+        else:
+            x1 = int(self.framey / 2 - self.ratey / 2)
+            x2 = int(self.framey / 2 + self.ratey / 2)
+            y1 = int(self.framex / 2 - self.ratex / 2)
+            y2 = int(self.framex / 2 + self.ratex / 2)
+            self.img = img[x1: x2, y1: y2]   # 缩放模式
+
+    def imshow(self, armorflag):
+        def fun_focus():  # 画出十字线和准星
+            x = int(self.ratex / 2.0)
+            y = int(self.ratey / 2.0)
+            cv2.line(self.img, (x, 0), (x, 2 * y - 1), (255, 255, 255), 3)
+            cv2.line(self.img, (0, y), (2 * x - 1, y), (255, 255, 255), 3)
+        if(self.focus):
+            fun_focus()
+        if(self.success):
+            self.tiktok.put_success(self.img, armorflag)
+        cv2.imshow("frame", self.img)
 
 def key_detect(cap, color, delay = 5):
-    key = cv2.waitKey(5)
+    key = cv2.waitKey(delay)
     if key is ord('r') or key is ord('b'):
         color = key
     if key is ord('q'):
@@ -13,46 +83,6 @@ def key_detect(cap, color, delay = 5):
         cap.release()  # 摄像头关闭
         return True, color
     return False, color
-
-def put_cross_focus(frame, midx, midy):
-    """
-    :param frame: 输入帧图像
-    :return: 画图后的图像
-    :function: 画出十字线和准星
-    """
-    x = int(midx)
-    y = int(midy)
-    cv2.line(frame, (x, 0), (x, 2 * y-1), (255, 255, 255), 3)
-    cv2.line(frame, (0, y), (2 * x-1, y), (255, 255, 255), 3)
-    return frame
-
-
-count = {"perSucRatio": 0, "entire_success_ratio": 0, "alFrame": 0,
-         "alSuc": 0, "perFrame": 0, "perSuc": 0, "period": 30}
-
-
-def put_success(frame, interval, armor, count):
-    """
-    输入：frame(当前帧)、 armor(装甲列表)、count(计数成员字典)
-    功能：当前帧添加实时成功率与全过程成功率、画出装甲图像
-    输出：无
-    """
-    count["alFrame"] += 1
-    count["perFrame"] += 1
-    count["entire_success_ratio"] = count["alSuc"] / count["alFrame"]
-    if armor:
-        count["alSuc"] += 1
-        count["perSuc"] += 1
-    if count["alFrame"] % count["period"] is 0:
-        count["perSucRatio"] = count["perSuc"] / count["perFrame"]
-        count["perFrame"] = count["perSuc"] = 0
-    font = cv2.FONT_ITALIC
-    fps = 1.0 / interval
-    msg = "fps:{0:0.2f} real_time:{1:0.2f}  entire_time:{2:0.2f}".format(
-                fps, count["perSucRatio"], count["entire_success_ratio"])
-    cv2.putText(frame, msg, (50, 50), font, 0.8, (255, 255, 255), 2)
-    return count["alFrame"]
-
 
 def fps_count(fps):
     """

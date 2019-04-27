@@ -75,34 +75,36 @@ def main():
     global midx, midy, frame_x, frame_y
     global key, serial_give, cap
     color = 98  # 114: red, 98: blue
-
+    tiktok = pf.Tiktok()                    # 滴答计时器
     svm = cv2.ml.SVM_load('./svm_data.dat') # 读取svm参数
-    kalman = kp.Kalman_Filter() # 卡尔曼滤波器类初始化
-    interval = 1.0
-    while cap.isOpened(): 
-        start = time.clock()
-        _, frame = cap.read()
-        if not EntireWindow: # 全视窗模式 1080p，如果不开的话就是默认截取中间的640x480
-            frame = frame[int(frame_y/2)-240: int(frame_y/2)+240, int(frame_x/2)-320: int(frame_x/2)+320]
-        gray, group = ld.light_detect(frame, color, preview = False) # preview为显示预处理图像
+    kalman = kp.Kalman_Filter()             # 卡尔曼滤波器类初始化
+    frame = pf.Frame(640, 480, frame_x, frame_y,
+    EntireWindow, tiktok, focus = True, success=True,
+    )                                       # frame类
+
+    while cap.isOpened():
+        tiktok.tik()
+        frame.update(cap)
+
+        gray, group = ld.light_detect(frame.img, color, preview = False) # preview为显示预处理图像
         # armorgroup = ad.armor_detect(svm, frame, group, train_mode=True, file="F:\\traindata\\"+str(target_num)) # 训练用，需要修改保存训练集目录
-        armorgroup = ad.armor_detect(svm, frame, group)
-        entire = pf.put_success(frame, interval, armorgroup, pf.count)
+        armorgroup = ad.armor_detect(svm, frame.img, group)
+
         if armorgroup:
             armor = aj.judge(armorgroup, attack = aj.mid, args = None)
             [midx, midy] = armor.mid
-            armor.show(frame, kalman, KalmanPreview = False)
+            armor.show(frame.img, kalman, KalmanPreview = False)
         else:
             midx = 320   # 未检测到的时候默认发串口为屏幕中心坐标
             midy = 240
 
-        frame = pf.put_cross_focus(frame, np.shape(frame)[1] / 2, np.shape(frame)[0] / 2) 
-        cv2.imshow("frame", frame)
+        frame.imshow(armorgroup is None)
+
         _k, color = pf.key_detect(cap, color)
         if(_k):
             break
-        interval = time.clock()-start
-        # print("timeused = ", 1.0/interval)
+
+        tiktok.tok()
 
 if __name__ == "__main__":
     if serial_give:   # if or if not serial
