@@ -4,6 +4,15 @@ import cv2
 import numpy as np
 import KalmanPredict as kp
 
+def key_detect(cap, color, delay = 5):
+    key = cv2.waitKey(5)
+    if key is ord('r') or key is ord('b'):
+        color = key
+    if key is ord('q'):
+        cv2.destroyAllWindows()
+        cap.release()  # 摄像头关闭
+        return True, color
+    return False, color
 
 def put_cross_focus(frame, midx, midy):
     """

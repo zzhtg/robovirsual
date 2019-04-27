@@ -2,9 +2,7 @@
 import cv2
 import numpy as np
 import math
-import pefermance as pf
 import SvmTrain as st
-import KalmanPredict as kp
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
 length_threshold = 1.0
@@ -12,7 +10,8 @@ width_threshold = 1.0
 aspect_threshold = [0.9, 7.0]
 ortho_threshold = [0.2, 0.2, 0.9]
 target_num = None
-debug_mode = False
+ortho_mode = False
+bet_mode = False
 error_text = False
 class Armor():
     def __init__(self, pos, dist, length, width, aspect, ortho, num, lightL, lightR):
@@ -37,7 +36,6 @@ def length_dif_det(l_left, l_right):
     length_dif = abs(l_left-l_right) / max(l_left, l_right)
     return length_dif <= length_threshold, length_dif
 
-
 def width_dif_det(w_left, w_right):
     """
     输入：w_left（左灯条宽度）w_right（右灯条宽度）
@@ -47,7 +45,6 @@ def width_dif_det(w_left, w_right):
     w_left, w_right = [i+1 for i in [w_left, w_right]]
     width_dif = abs(w_left-w_right) / max(w_left, w_right)
     return width_dif <= width_threshold, width_dif
-
 
 def armor_aspect_det(x_l, y_l, x_r, y_r, l_l, l_r, w_l, w_r):
     """
@@ -83,12 +80,11 @@ def ortho_pixel(frame, l_pixel, r_pixel):
     vec_light_l = [[lxmid, lymid], [directlxmid, directlymid]]  # 灯条1的方向矢量
     vec_light_r = [[rxmid, rymid], [directrxmid, directrymid]]  # 灯条2的方向矢量
 
-    if debug_mode:        # debug 划线及输出
+    if ortho_mode:        # debug 划线及输出
         cv2.line(frame, tuple(vec_mid[0]), tuple(vec_mid[1]), (255, 0, 0), 5)
         cv2.line(frame, tuple(vec_light_l[0]), tuple(vec_light_l[1]), (255, 0, 0), 5)
         cv2.line(frame, tuple(vec_light_r[0]), tuple(vec_light_r[1]), (255, 0, 0), 5)
     return vec_mid, vec_light_l, vec_light_r
-
 
 def ortho_angle(vec_mid, vec_light_l, vec_light_r):
     """
@@ -118,12 +114,30 @@ def ortho_angle(vec_mid, vec_light_l, vec_light_r):
     return_flag = (abs(angle_l) < ortho_threshold[0] and
                    abs(angle_r) < ortho_threshold[1] and
                    abs(angle_p) > ortho_threshold[2])
-    if return_flag and debug_mode:
-        print("angle_l = ", angle_l, "angle_r = ", angle_r, "midAngle = ", (angle_l + angle_r) / 2)
-    # 范围 60~120度， 两个灯条都满足
+        # 范围 60~120度， 两个灯条都满足
     return return_flag, angle_l, angle_r, angle_p, (dist, long_rate, short_rate)
 
-def armor_detect(svm, frame, group, train_mode=False, file="F:\\traindata\\"):
+def between_light_detect(frame, armor, lightcenter, left, right, lens):
+    for index in range(lens):
+        if(index is left or index is right):
+            continue
+        x, y, l, s = lightcenter[index]
+        midx = math.ceil(x + l / 2.0)
+        midy = math.ceil(y + s / 2.0)
+
+        x1, y1, x2, y2 = armor.pos
+        lx = math.ceil(x1 + l / 2.0)
+        rx = math.ceil(x2 - l / 2.0)
+        uy = math.ceil(y1 + s / 2.0)
+        dy = math.ceil(y2 - s / 2.0)
+
+        if(rx >= midx >= lx or uy >= midy >= dy):
+            if(bet_mode):   # 如果装甲中间有夹多余的灯条，那么就pass
+                cv2.rectangle(frame, (lx, uy), (rx, dy), (255, 0, 0), 2)
+            return (midx, midy), (lx, uy, rx, dy)
+    return True
+
+def armor_detect(svm, frame, lightgroup, train_mode=False, file="F:\\traindata\\"):
     """
     输入：group（可能是灯条的矩形最小边界拟合信息）
     功能：一一对比矩形、找到可能的灯条组合作为装甲
@@ -131,14 +145,15 @@ def armor_detect(svm, frame, group, train_mode=False, file="F:\\traindata\\"):
     """
     image = frame.copy()
     armorgroup = []
-    lens = len(group)
+    lens = len(lightgroup)
+    lightcenter = [light.rect for light in lightgroup]
     num = 0
     for left in range(lens):
         for right in range(left + 1, lens):
-            if(group[left].rect[0] > group[right].rect[0]):
+            if(lightgroup[left].rect[0] > lightgroup[right].rect[0]):
                 left, right = right, left 
-            [x_l, y_l, long_l, short_l] = group[left].rect
-            [x_r, y_r, long_r, short_r] = group[right].rect
+            [x_l, y_l, long_l, short_l] = lightgroup[left].rect
+            [x_r, y_r, long_r, short_r] = lightgroup[right].rect
             l_, length_dif = length_dif_det(long_l, long_r)   # 长度差距判断：两灯条的长度差 / 长一点的那个长度 < 36%
             if not l_:
                 if(error_text):
@@ -154,8 +169,8 @@ def armor_detect(svm, frame, group, train_mode=False, file="F:\\traindata\\"):
                 if(error_text):
                     print("armor_aspect=", armor_aspect)
                 continue
-            l_pixel = cv2.boxPoints(group[left].raw)
-            r_pixel = cv2.boxPoints(group[right].raw)
+            l_pixel = cv2.boxPoints(lightgroup[left].raw)
+            r_pixel = cv2.boxPoints(lightgroup[right].raw)
             # 第一个y值最大，第三个y值最小，第二个x值最小，第四个x值最大
             vec_mid, vec_light_l, vec_light_r = ortho_pixel(frame, l_pixel, r_pixel)
             o_, ortho_l_value, ortho_r_value, angle_p, dist_group = ortho_angle(vec_mid, vec_light_l, vec_light_r)
@@ -199,6 +214,12 @@ def armor_detect(svm, frame, group, train_mode=False, file="F:\\traindata\\"):
             if pos is not None:
                 armor = Armor(pos, dist, length_dif, width_dif, armor_aspect,
                               [ortho_l_value, ortho_r_value, angle_p],
-                              num, group[left], group[right])
+                              num, lightgroup[left], lightgroup[right])
+                _bet = between_light_detect(frame, armor, lightcenter, left, right, lens)
+                if(_bet is not True):
+                    if(error_text):
+                        l_mid, ar_edge = _bet
+                        print("mid = ", l_mid, "edge = ", ar_edge)
+                    continue
                 armorgroup.append(armor)
     return armorgroup
