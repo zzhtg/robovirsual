@@ -28,7 +28,7 @@ key = 0
 cap = cv2.VideoCapture(0)
 cap.set(3, frame_x)
 cap.set(4, frame_y)
-cap.set(15, -8)      # 曝光度最低为-8
+#cap.set(15, -8)      # 曝光度最低为-8
 EntireWindow = False # 全视窗模式
 
 # 配置灯条检测预处理参数
