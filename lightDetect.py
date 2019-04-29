@@ -92,7 +92,7 @@ def light_detect(image, color, preview = False):
     # cv2 3 finContours 返回图像、轮廓和层级
     # 修改1 为 0即可
     version = cv2.__version__
-    v = 0 if (version[0] == 4) else 1
+    v = 0 if (version[0] == '4') else 1 
     for contour in cv2.findContours(pretreatment, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[v]:
         ans = detect(image, pretreatment, contour, color)
         if(ans == False):

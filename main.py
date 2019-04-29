@@ -20,7 +20,7 @@ frame_y = 1080
 midx = 320      # 非全视窗模式分辨率
 midy = 240
 ad.debug_mode = True
-serial_give = True
+serial_give = False
 ser = 0
 key = 0
 
@@ -76,7 +76,7 @@ def main():
     global key, serial_give, cap
     color = 98  # 114: red, 98: blue
     tiktok = pf.Tiktok()                    # 滴答计时器
-    svm = cv2.ml.SVM_load('/home/hushi/robovirsual/svm_data.dat') # 读取svm参数
+    svm = cv2.ml.SVM_load('/home/ubuntu/robovirsual/svm_data.dat') # 读取svm参数
     kalman = kp.Kalman_Filter()             # 卡尔曼滤波器类初始化
     frame = pf.Frame(640, 480, frame_x, frame_y,
     EntireWindow, tiktok, focus = True, success=True,
