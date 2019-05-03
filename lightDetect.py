@@ -5,8 +5,8 @@ frame_threshold = [150, 255]
 aspect_threshold = [0.06, 0.5]
 red_down_threshold = [60, 110, 220]
 red_up_threshold = [180, 220, 255]
-blue_down_threshold = [220, 150, 60]
-blue_up_threshold = [255, 250, 255]
+blue_down_threshold = [220, 150, 30]
+blue_up_threshold = [255, 250, 230]
 class Light():
     def __init__(self, rect, color, aspect):
         self.color = color

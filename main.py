@@ -36,7 +36,7 @@ ld.frame_threshold = [150, 255]             # 二值化阈值
 ld.aspect_threshold = [0.06, 0.5]           # 长宽比阈值
 ld.red_down_threshold = [60, 110, 220]      # 红色阈值下界
 ld.red_up_threshold = [180, 220, 255]       # 红色阈值上界
-ld.blue_down_threshold = [230, 150, 60]     # 蓝色阈值下界
+ld.blue_down_threshold = [230, 150, 30]     # 蓝色阈值下界
 ld.blue_up_threshold = [255, 250, 150]      # 蓝色阈值上界
 
 # 配置装甲检测参数
