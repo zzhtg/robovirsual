@@ -129,7 +129,7 @@ def saveData(directory, image):
         os.makedirs(path)
     count = len(os.listdir(path)) + 1
     if count < size_of_data / digit_num:
-        cv2.imwrite(os.path.join(path, str(count)), image)
+        cv2.imwrite(os.path.join(path, str(count) + ".jpg"), image)
         print("store the file in {0}.jpg".format(os.path.join(path, str(count))), image.shape)
         return True
     else:
@@ -138,12 +138,12 @@ def saveData(directory, image):
 
 def readData(directory, count):
     global filename
-    path = os.path.join(os.getcwd(), filename, str(directory))
-    if os.path.exists(os.path.join(path, str(count))):
-        img = cv2.imread(os.path.join(path, str(count)), 0)
+    path = os.path.join(os.getcwd(), filename, str(directory), str(count))
+    if os.path.exists(path):
+        img = cv2.imread(path, 0)
         return img
     else:
-        print("Error: haven`t {0}".format(os.path.join(path, count)))
+        print("Error: haven`t {0}".format(path))
         sys.exit(0)
 
 size_of_data = 900
