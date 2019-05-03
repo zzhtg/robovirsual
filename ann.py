@@ -26,42 +26,29 @@ def rotate(image, angle, center=None, scale=1.0): #1
     return rotated
 
 def position(leftGroup, rightGroup):
-    """
-    function: 获取装甲的位置和坐标
-    :param l_pixel: 左灯条四个点坐标
-    :param r_pixel: 右灯条四个点坐标
-    :param x: 对八个点的X进行排序
-    :param y: 对八个点的y进行排序
-    :param pos: 装甲左上角，右下角坐标
-    """
     l_pixel = cv2.boxPoints(leftGroup.raw)
     r_pixel = cv2.boxPoints(rightGroup.raw)
     x = sorted(np.append(l_pixel[0:4, 0], r_pixel[0:4, 0]))
     y = sorted(np.append(l_pixel[0:4, 1], r_pixel[0:4, 1]))
-
     pos = [i for i in [x[0], y[0], x[7], y[7]]]
     return pos, x, y
 
 def cutDigit(image, leftGroup, rightGroup):
     long_l = leftGroup.rect[2]
     long_r = rightGroup.rect[2]
-    h = (long_l+long_r)/2
-
     x, y = position(leftGroup, rightGroup)[1:3]
+    h = (long_l+long_r)/2
     x1, y1, x2, y2 = int((y[0]+y[7])/2 - 1.5*h), int((y[0]+y[7])/2 + 1.5*h), int(
                      (x[0]+x[7])/2 - h*0.75), int((x[0] + x[7])/2 + h*0.75)
-
     min_digit = 0
     max_right_digit = image.shape[0]
     max_left_digit = image.shape[1]
-
     x1 = min_digit if x1 < min_digit else x1    # 使用三元运算符改写
     y1 = max_right_digit if y1 > max_right_digit else y1
     x2 = min_digit if x2 < min_digit else x2
     y2 = max_left_digit if y2 > max_left_digit else y2
-
     bias = -ad.angle_bias - 90.0
-    image = rotate(image, bias, center = ((x2 + x1) / 2, (y2 + y1) /2))
+    image = rotate(image, bias)
     digit = image[x1: y1, x2: y2]
     return digit
 
@@ -120,10 +107,6 @@ row = 20
 
 filename = "traindata"
 def saveData(directory, image):
-    """
-    function: 保存灯条的图片到对应的路径
-    :param key: 保存到 filename 下面的 key(0 - 8) 路径 q 退出
-    """
     global filename, col, row
     # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     image = cv2.resize(image, (col, row))
@@ -132,9 +115,9 @@ def saveData(directory, image):
     cv2.imshow("number: {0}".format(directory), image)
     key = cv2.waitKey(0) & 0xff
     if key is ord("s"):
-        path = "{0}/{1}/{2}".format(os.getcwd(), filename, directory)
+        path = os.path.join(os.getcwd(), filename, str(directory))
     elif ord("8") >= key >= ord("0"):
-        path = "{0}/{1}/{2}".format(os.getcwd(), filename, key - ord("0"))
+        path = os.path.join(os.getcwd(), filename, str(key - ord("0")))
     elif key is ord("q"):
         print("exit save data")
         sys.exit(0)
@@ -146,37 +129,28 @@ def saveData(directory, image):
         os.makedirs(path)
     count = len(os.listdir(path)) + 1
     if count < size_of_data / digit_num:
-        cv2.imwrite("{0}/{1}.jpg".format(path, count), image)
-        print("store the file in {0}/{1}.jpg".format(path, count), image.shape)
+        cv2.imwrite(os.path.join(path, str(count)), image)
+        print("store the file in {0}.jpg".format(os.path.join(path, str(count))), image.shape)
         return True
     else:
         print("{0} file number = max({1})".format(path, size_of_data / digit_num))
         return False
 
 def readData(directory, count):
-    """
-    function: 读取图片
-    ：param directory： 对应的文件目录
-    ：param count： 对应的图片名
-    """
     global filename
-    path = "{0}/{1}/{2}".format(os.getcwd(), filename, directory)
-    if os.path.exists("{0}/{1}".format(path, count)):
-        img = cv2.imread("{0}/{1}".format(path, count), 0)
+    path = os.path.join(os.getcwd(), filename, str(directory))
+    if os.path.exists(os.path.join(path, str(count))):
+        img = cv2.imread(os.path.join(path, str(count)), 0)
         return img
     else:
-        print("Error: haven`t {0}/{1}".format(path, count))
+        print("Error: haven`t {0}".format(os.path.join(path, count)))
         sys.exit(0)
 
-size_of_data = 900      # 所有数据集的大小
-digit_num = 9  # 所有数字的个数，包括一个0，作为错误样本存放
-ann_dist = "ann_train.xml"      # 存放ann训练结果的文件名
+size_of_data = 900
+digit_num = 9
+ann_dist = "ann_train.xml"
 
 def create(hidden = 80):
-    """
-    function：创建一个ann类
-    ：param hidden：隐藏层的大小
-    """
     global digit_num, col, row
     ann = cv2.ml.ANN_MLP_create()
     ann.setLayerSizes(np.array([col * row, hidden, digit_num]))
@@ -186,16 +160,9 @@ def create(hidden = 80):
     return ann
 
 def record(sample):
-    """
-    function: 数组转化为需要的格式和（1， N）的样式
-    """
     return np.array([sample], dtype = np.float32)
 
 def traindata():
-    """
-    function: 从本地的traindata目录当中逐个读取图片
-    : param data : 存放所有展开后的图片
-    """
     global digit_num, size_of_data, filename
     data = []
     for directory in os.listdir(os.path.join(os.getcwd(), filename)):
@@ -204,11 +171,6 @@ def traindata():
     return data
 
 def labeldata():
-    """
-    function: 根据本地traindata目录当中的路径名创建训练集标签
-    ：param labelarray：生成每个标签的样式 ex：[0, 1, 0, 0, 0, 0, 0, 0]
-    ：param label: 对应traindata函数生成物的标签
-    """
     global digit_num, size_of_data, filename
     label = []
     for i in os.listdir(os.path.join(os.getcwd(), filename)):
@@ -223,16 +185,11 @@ def labeldata():
     return label
 
 def train(ann):
-    """
-    function: 对本地的数据集进行训练，保存训练结果
-    ：param tdata：训练数据
-    ：param label：标签数据
-    """
     tdata = traindata()
     label = labeldata()
     count = 0
     for t, l in zip(tdata, label):
-        print("{0}/{1}".format(count, len(tdata)))
+        print(os.path.join(str(count), str(len(tdata))))
         count += 1
         # print(t, l)
         # print(t.shape, l.shape)
@@ -242,16 +199,10 @@ def train(ann):
         print("Replace an old {0}".format(ann_dist))
     else:
         print("Now, the directory have {0}".format(ann_dist))
-    ann.save("{0}/{1}".format(os.getcwd(), ann_dist))
+    ann.save(os.path.join(os.getcwd(), ann_dist))
     return ann
 
 def saveDigit(cam = 0):
-    """
-    function: 使用摄像头对读取到的图片进行保存
-    ：param armorgroup：装甲信息与截取的数字图片
-    ：param directory： 自动保存的路径 0-8, 不影响savedata函数选择保存
-    : param count： 对图片数量计数用
-    """
     global size_of_data, digit_num
     cap = cv2.VideoCapture(cam)
     color = 98
@@ -270,7 +221,7 @@ def saveDigit(cam = 0):
             armorGroup = armor_detect(frame, lightGroup)
             cv2.imshow("frame", frame)
             if armorGroup is not None:
-                for digit in armorGroup[:, 1]:
+                for armor, digit in armorGroup:
                     if count >= size_of_data / digit_num:
                         count = 0
                         directory += 1
@@ -285,33 +236,27 @@ def saveDigit(cam = 0):
     cap.release()
     cv2.destroyAllWindows()
 
-def createData(hidden = 100):     
-    """
-    function: 创建一些np.ones * n 内容的训练集然后训练他们
-    """
+def createData():
     global digit_num, size_of_data
     for directory in range(digit_num):
        for count in range(int(size_of_data / digit_num)):
            if not saveData(directory, np.ones(shape=(100, 100)) * directory * 10):
                continue
-    ann = create(hidden)
+    ann = create(100)
     train(ann)
 
 def testAnn():
-    """
-    function: 从本地获取ann 然后去测试ann 是否可用
-    """
     global ann_dist
-    ann = cv2.ml.ANN_MLP_load("./{0}".format(ann_dist))
-    testData = np.float32([np.ones(shape = (20, 18)).reshape(-1) * 50])
+    ann = cv2.ml.ANN_MLP_load(os.path.join(os.getcwd(), ann_dist))
+    testData = np.float32([np.ones(shape = (20, 18)).reshape(-1) * 1000])
     print(testData)
     cl, x = ann.predict(testData)
     print(cl, x)
 
 if __name__ == "__main__":
     # saveDigit("/dev/video2")
-    # ann = create(hidden = 720)
-    # train(ann)
-    createData()
+    # createData()
+    ann = create(hidden = 720)
+    train(ann)
     testAnn()
 
