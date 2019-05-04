@@ -26,6 +26,14 @@ def rotate(image, angle, center=None, scale=1.0): #1
     return rotated
 
 def position(leftGroup, rightGroup):
+    """
+    function: 获取装甲左上角和右下角坐标
+    ：param leftGroup：左灯条信息
+    ：param rightGroup：右灯条信息
+    ：param x：x 坐标从小到大排序
+    ：param y：y 坐标从小到大排序
+    ：param pos：装甲左上角和右下角的点
+    """
     l_pixel = cv2.boxPoints(leftGroup.raw)
     r_pixel = cv2.boxPoints(rightGroup.raw)
     x = sorted(np.append(l_pixel[0:4, 0], r_pixel[0:4, 0]))
@@ -34,6 +42,13 @@ def position(leftGroup, rightGroup):
     return pos, x, y
 
 def cutDigit(image, leftGroup, rightGroup):
+    """
+    function：截取数字的图像
+    ：input image：原始图像
+    ：input leftgroup：左灯条信息
+    ：input rightgroup：右灯条信息
+    ：output digit：装甲中心数字图像
+    """
     long_l = leftGroup.rect[2]
     long_r = rightGroup.rect[2]
     x, y = position(leftGroup, rightGroup)[1:3]
@@ -107,6 +122,11 @@ row = 20
 
 filename = "traindata"
 def saveData(directory, image):
+    """
+    function：保存图片到对应标签下并计数为图片命名
+    ：input directory：图片所属的标签（0-8）
+    ：input image：图片本身
+    """
     global filename, col, row
     # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     image = cv2.resize(image, (col, row))
@@ -137,6 +157,12 @@ def saveData(directory, image):
         return False
 
 def readData(directory, count):
+    """
+    function：获取对应标签和文件名下的图片
+    ：input directory：文件的标签（0-8）
+    ：input count：文件名（windows和linux获取都可以忽视后缀”.jpg“）
+    ：output img：返回图片的信息（可以后期修改为hog信息，如果老哥想的话）
+    """
     global filename
     path = os.path.join(os.getcwd(), filename, str(directory), str(count))
     if os.path.exists(path):
@@ -151,6 +177,11 @@ digit_num = 9
 ann_dist = "ann_train.xml"
 
 def create(hidden = 80):
+    """
+    function：创建一个ann的机器学习类
+    ：input hidden：隐藏层的数量
+    ：output ann：返回一个ann类
+    """
     global digit_num, col, row
     ann = cv2.ml.ANN_MLP_create()
     ann.setLayerSizes(np.array([col * row, hidden, digit_num]))
@@ -160,9 +191,18 @@ def create(hidden = 80):
     return ann
 
 def record(sample):
+    """
+    function：转化为np.float32格式的数组
+    ：input sample：输入的数组
+    ：output ：转换格式后的数组 
+    """
     return np.array([sample], dtype = np.float32)
 
 def traindata():
+    """
+    function：逐个获取filename（traindata）下面所有标签对应的图片信息
+    ：output data：所有的图片降维到一维的列表
+    """
     global digit_num, size_of_data, filename
     data = []
     for directory in os.listdir(os.path.join(os.getcwd(), filename)):
@@ -171,6 +211,10 @@ def traindata():
     return data
 
 def labeldata():
+    """
+    function：根据filename（traindata）文件下的文件夹标签生成对应数量的标签列表
+    ：output label：[0, 1, 0, 0, 0, 0, 0, 0]等一维数组的集合
+    """
     global digit_num, size_of_data, filename
     label = []
     for i in os.listdir(os.path.join(os.getcwd(), filename)):
@@ -185,6 +229,11 @@ def labeldata():
     return label
 
 def train(ann):
+    """
+    functions：根据filename（traindata）文件夹下的数据集进行训练并保存.xml数据
+    ：input ann：输入一个ann的类
+    ：output ann：训练结束之后的ann类
+    """
     tdata = traindata()
     label = labeldata()
     count = 0
@@ -203,6 +252,10 @@ def train(ann):
     return ann
 
 def saveDigit(cam = 0):
+    """
+    function：保存装甲中心的图片
+    ：input cam：相机的路径，只有一个摄像头默认0，Linux下多个摄像头可能需要"/dev/video2"的形式
+    """
     global size_of_data, digit_num
     cap = cv2.VideoCapture(cam)
     color = 98
@@ -237,6 +290,9 @@ def saveDigit(cam = 0):
     cv2.destroyAllWindows()
 
 def createData():
+    """
+    测试用
+    """
     global digit_num, size_of_data
     for directory in range(digit_num):
        for count in range(int(size_of_data / digit_num)):
@@ -246,6 +302,9 @@ def createData():
     train(ann)
 
 def testAnn():
+    """
+    测试用
+    """
     global ann_dist
     ann = cv2.ml.ANN_MLP_load(os.path.join(os.getcwd(), ann_dist))
     testData = np.float32([np.ones(shape = (20, 18)).reshape(-1) * 1000])
