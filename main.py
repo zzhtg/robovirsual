@@ -15,21 +15,27 @@ import SerialSend as ss
 import attackjudge as aj
 
 # global variable
-frame_x = 1920  # 全视窗模式分辨率
-frame_y = 1080
+frame_x = 640  # 全视窗模式分辨率
+frame_y = 480
 midx = 320      # 非全视窗模式分辨率
 midy = 240
 ad.debug_mode = True
 serial_give = False
+read_video = False   # 检测视频而不是检测摄像头
+write_video = True      # 开启保存视频
 ser = 0
 key = 0
 
 # camera load
-cap = cv2.VideoCapture(0)
-cap.set(3, frame_x)
-cap.set(4, frame_y)
-#cap.set(15, -8)      # 曝光度最低为-8
-EntireWindow = False # 全视窗模式
+if not read_video:
+    cap = cv2.VideoCapture(0)
+    cap.set(3, frame_x)
+    cap.set(4, frame_y)
+    #cap.set(15, -8)      # 曝光度最低为-8
+    EntireWindow = True # 全视窗模式
+else:
+    cap = cv2.VideoCapture('output.avi')
+    EntireWindow = True  # 全视窗模式
 
 # 配置灯条检测预处理参数
 ld.frame_threshold = [150, 255]             # 二值化阈值
@@ -37,7 +43,7 @@ ld.aspect_threshold = [0.06, 0.5]           # 长宽比阈值
 ld.red_down_threshold = [60, 110, 220]      # 红色阈值下界
 ld.red_up_threshold = [180, 220, 255]       # 红色阈值上界
 ld.blue_down_threshold = [230, 150, 30]     # 蓝色阈值下界
-ld.blue_up_threshold = [255, 250, 150]      # 蓝色阈值上界
+ld.blue_up_threshold = [255, 250, 250]      # 蓝色阈值上界
 
 # 配置装甲检测参数
 ad.length_threshold = 1.0                   # 灯条长度比
@@ -47,7 +53,9 @@ ad.ortho_threshold = [0.2, 0.2, 0.9]        # 正交率阈值(angle_l,angle_r,an
 ad.target_num = None                        # 要检测的数字(如果为None表示不加入数字检测条件)
 ad.ortho_mode = False						# 正交率划线显示
 ad.bet_mode = False                         # 夹心灯条显示
-ad.error_text = False						# 检测错误输出文本
+ad.error_text = True						# 检测错误输出文本
+
+out = None
 
 def stm32(debug_mode=False):
     global ser, key, midx, midy, serial_give
@@ -75,32 +83,37 @@ def main():
     global midx, midy, frame_x, frame_y
     global key, serial_give, cap
     color = 98  # 114: red, 98: blue
+    if write_video:
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        out = cv2.VideoWriter('output.avi', fourcc, 30.0, (640, 480))
+    else:
+        out = None
     tiktok = pf.Tiktok()                    # 滴答计时器
-    svm = cv2.ml.SVM_load('/home/ubuntu/robovirsual/svm_data.dat') # 读取svm参数
+    svm = cv2.ml.SVM_load('./svm_data.dat') # 读取svm参数
     kalman = kp.Kalman_Filter()             # 卡尔曼滤波器类初始化
     frame = pf.Frame(640, 480, frame_x, frame_y,
-    EntireWindow, tiktok, focus = True, success=True,
+    EntireWindow, tiktok, focus = True, success=True, out = out
     )                                       # frame类
 
     while cap.isOpened():
         tiktok.tik()
         frame.update(cap)
 
-        gray, group = ld.light_detect(frame.img, color, preview = False) # preview为显示预处理图像
+        gray, group = ld.light_detect(frame, color, preview = False) # preview为显示预处理图像
         # armorgroup = ad.armor_detect(svm, frame, group, train_mode=True, file="F:\\traindata\\"+str(target_num)) # 训练用，需要修改保存训练集目录
-        armorgroup = ad.armor_detect(svm, frame.img, group)
+        armorgroup = ad.armor_detect(svm, frame.img, group, train_mode=False)
 
         if armorgroup:
-            armor = aj.judge(armorgroup, attack = aj.mid, args = None)
+            armor = aj.judge(armorgroup, attack = aj.mid, args = 1)
             [midx, midy] = armor.mid
-            armor.show(frame.img, kalman, KalmanPreview = False)
+            armor.show(frame.frame_out, kalman, KalmanPreview = False)
         else:
             midx = 320   # 未检测到的时候默认发串口为屏幕中心坐标
             midy = 240
 
         frame.imshow(armorgroup is None)
 
-        _k, color = pf.key_detect(cap, color)
+        _k, color = pf.key_detect(out, cap, color)
         if(_k):
             key = 113
             break
@@ -119,5 +132,6 @@ if __name__ == "__main__":
         thread_main.join()
         thread_serial.join()
         print("Threads has been stopped")
+
     else: # None Serial Debug Connection
         main()

@@ -197,9 +197,9 @@ def armor_detect(svm, frame, lightgroup, train_mode=False, file="F:\\traindata\\
 
             if sum(np.shape(digit)) == 0:
                 continue
-            hog_trait = st.image2hog(digit)
+            hog_trait, traininput = st.image2hog(digit, preview = True)
             if not train_mode:  # 如果开启了训练模式,会读取设定保存的文件目录,然后识别时不经过数字判断
-                num = st.predictShow(svm, hog_trait)
+                num = st.predictShow(svm, traininput)
                 num = int(num[0][0])
                 if(target_num is not None):
                     n_ = (target_num == num)
@@ -208,7 +208,7 @@ def armor_detect(svm, frame, lightgroup, train_mode=False, file="F:\\traindata\\
                             print("wrong digit=", num)
                         continue
             else:
-                st.savetrain(hog_trait, filename=file)
+                st.saveimage(traininput, filename=file)
             # distance output
             (dist, long_rate, short_rate) = dist_group
             if pos is not None:

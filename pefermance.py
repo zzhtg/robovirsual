@@ -41,7 +41,7 @@ class Tiktok():
 
 class Frame():
     def __init__(self, ratex, ratey, framex, framey, EntireWindow,
-                 tiktok, focus = True, success = True, ):
+                 tiktok, focus = True, success = True, out = None):
         self.entireflag = EntireWindow
         self.ratex = ratex # 缩放窗口大小 640 x 480
         self.ratey = ratey
@@ -50,37 +50,44 @@ class Frame():
         self.focus = focus
         self.success = success
         self.tiktok = tiktok
+        self.out = out
+        self.frame_out = None
 
     def update(self, cap):
         _, img = cap.read()
-        if(self.entireflag):
-            self.img = img # 完整模式
-        else:
-            x1 = int(self.framey / 2 - self.ratey / 2)
-            x2 = int(self.framey / 2 + self.ratey / 2)
-            y1 = int(self.framex / 2 - self.ratex / 2)
-            y2 = int(self.framex / 2 + self.ratex / 2)
-            self.img = img[x1: x2, y1: y2]   # 缩放模式
+        if img is not None:
+            if(self.entireflag):
+                self.img = img # 完整模式
+            else:
+                x1 = int(self.framey / 2 - self.ratey / 2)
+                x2 = int(self.framey / 2 + self.ratey / 2)
+                y1 = int(self.framex / 2 - self.ratex / 2)
+                y2 = int(self.framex / 2 + self.ratex / 2)
+                self.img = img[x1: x2, y1: y2]   # 缩放模式
+            self.frame_out = self.img.copy()# 将调试信息放在拷贝里面
 
     def imshow(self, armorflag):
         def fun_focus():  # 画出十字线和准星
             x = int(self.ratex / 2.0)
             y = int(self.ratey / 2.0)
-            cv2.line(self.img, (x, 0), (x, 2 * y - 1), (255, 255, 255), 3)
-            cv2.line(self.img, (0, y), (2 * x - 1, y), (255, 255, 255), 3)
+            cv2.line(self.frame_out, (x, 0), (x, 2 * y - 1), (255, 255, 255), 3)
+            cv2.line(self.frame_out, (0, y), (2 * x - 1, y), (255, 255, 255), 3)
         if(self.focus):
             fun_focus()
         if(self.success):
-            self.tiktok.put_success(self.img, armorflag)
-        cv2.imshow("frame", self.img)
+            self.tiktok.put_success(self.frame_out, armorflag)
+        cv2.imshow("frame", self.frame_out)
+        if(self.out is not None):
+            self.out.write(self.img)
 
-def key_detect(cap, color, delay = 5):
+def key_detect(out, cap, color, delay = 5):
     key = cv2.waitKey(delay)
     if key is ord('r') or key is ord('b'):
         color = key
     if key is ord('q'):
-        cv2.destroyAllWindows()
+        out.release()
         cap.release()  # 摄像头关闭
+        cv2.destroyAllWindows()
         return True, color
     return False, color
 
