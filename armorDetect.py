@@ -137,7 +137,7 @@ def between_light_detect(frame, armor, lightcenter, left, right, lens):
             return (midx, midy), (lx, uy, rx, dy)
     return True
 
-def armor_detect(svm, frame, lightgroup, train_mode=False, file="F:\\traindata\\"):
+def armor_detect(svm, frame, lightgroup, num_preview = False, train_mode=False, file="F:\\traindata\\", ):
     """
     输入：group（可能是灯条的矩形最小边界拟合信息）
     功能：一一对比矩形、找到可能的灯条组合作为装甲
@@ -197,7 +197,7 @@ def armor_detect(svm, frame, lightgroup, train_mode=False, file="F:\\traindata\\
 
             if sum(np.shape(digit)) == 0:
                 continue
-            hog_trait, traininput = st.image2hog(digit, preview = True)
+            hog_trait, traininput = st.image2hog(digit, preview = num_preview)
             if not train_mode:  # 如果开启了训练模式,会读取设定保存的文件目录,然后识别时不经过数字判断
                 num = st.predictShow(svm, traininput)
                 num = int(num[0][0])

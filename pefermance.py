@@ -32,12 +32,12 @@ class Tiktok():
         if count["alFrame"] % count["period"] is 0:
             count["perSucRatio"] = count["perSuc"] / count["perFrame"]
             count["perFrame"] = count["perSuc"] = 0
+
         font = cv2.FONT_ITALIC
         fps = 1.0 / self.interval
         msg = "fps:{0:0.2f} real_time:{1:0.2f}  entire_time:{2:0.2f}".format(
             fps, count["perSucRatio"], count["entire_success_ratio"])
         cv2.putText(frame, msg, (50, 50), font, 0.8, (255, 255, 255), 2)
-        # return count["alFrame"]
 
 class Frame():
     def __init__(self, ratex, ratey, framex, framey, EntireWindow,
@@ -85,7 +85,8 @@ def key_detect(out, cap, color, delay = 5):
     if key is ord('r') or key is ord('b'):
         color = key
     if key is ord('q'):
-        out.release()
+        if(out is not None):
+            out.release()
         cap.release()  # 摄像头关闭
         cv2.destroyAllWindows()
         return True, color
