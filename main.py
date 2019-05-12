@@ -42,8 +42,8 @@ ld.frame_threshold = [50, 255]             # 二值化阈值
 ld.aspect_threshold = [0.06, 0.5]           # 长宽比阈值
 ld.red_down_threshold = [50, 30, 70]      # 红色阈值下界
 ld.red_up_threshold = [120, 140, 255]       # 红色阈值上界
-ld.blue_down_threshold = [244, 240, 240]     # 蓝色阈值下界
-ld.blue_up_threshold = [255, 255, 255]      # 蓝色阈值上界
+ld.blue_down_threshold = [230, 120, 20]   # 蓝色阈值下界
+ld.blue_up_threshold = [255, 230, 105]      # 蓝色阈值上界
 
 # 配置装甲检测参数
 ad.length_threshold = 1.0                   # 灯条长度比
@@ -55,6 +55,9 @@ ad.ortho_mode = False						# 正交率划线显示
 ad.bet_mode = False                         # 夹心灯条显示
 ad.error_text = False						# 检测错误输出文本
 
+# 动态选择数字攻击策略
+aj.armor_len = 30      # buffer最大长度
+aj.armor_correct = 5     # 最小选中数量
 
 def stm32(debug_mode=False):
     global ser, key, midx, midy, serial_give
@@ -102,8 +105,11 @@ def main():
         # armorgroup = ad.armor_detect(svm, frame, group, train_mode=True, file="F:\\traindata\\"+str(target_num)) # 训练用，需要修改保存训练集目录
         armorgroup = ad.armor_detect(svm, frame.img, group, num_preview = False, train_mode=False)
 
+        target, armor_list = aj.number_auto(armorgroup) # 动态数字选择
+        print(target, armor_list)
+
         if armorgroup:
-            armor = aj.judge(armorgroup, attack = aj.mid, args = 7)
+            armor = aj.judge(armorgroup, attack = aj.mid, args = target)
             [midx, midy] = armor.mid
             armor.show(frame.frame_out, kalman, KalmanPreview = False)
         else:
