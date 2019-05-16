@@ -131,7 +131,7 @@ def between_light_detect(frame, armor, lightcenter, left, right, lens):
         uy = math.ceil(y1 + s / 2.0)
         dy = math.ceil(y2 - s / 2.0)
 
-        if(rx >= midx >= lx or uy >= midy >= dy):
+        if(rx >= midx >= lx and uy >= midy >= dy):
             if(bet_mode):   # 如果装甲中间有夹多余的灯条，那么就pass
                 cv2.rectangle(frame, (lx, uy), (rx, dy), (255, 0, 0), 2)
             return (midx, midy), (lx, uy, rx, dy)

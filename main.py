@@ -4,6 +4,7 @@
 import time
 import threading
 import cv2
+import os
 
 # Private Function Package
 import armorDetect as ad
@@ -16,12 +17,14 @@ import attackjudge as aj
 # global variable
 frame_x = 1280  # 全视窗模式分辨率
 frame_y = 720
+addx = 20
+addy = 120
 midx = 320      # 非全视窗模式分辨率
 midy = 240
 ad.debug_mode = True
-serial_give = False
+serial_give = True
 read_video = False       # 检测视频而不是检测摄像头
-write_video = False      # 开启保存视频
+write_video = True      # 开启保存视频
 ser = 0
 key = 0
 
@@ -31,7 +34,7 @@ if not read_video:
     cap = cv2.VideoCapture(0)
     cap.set(3, frame_x)
     cap.set(4, frame_y)
-    #cap.set(15, -8)      # 曝光度最低为-8
+    # cap.set(15, -8)      # 曝光度最低为-8
     EntireWindow = False # 全视窗模式
 else:
     cap = cv2.VideoCapture('output.avi')
@@ -39,17 +42,17 @@ else:
 
 # 配置灯条检测预处理参数
 ld.frame_threshold = [50, 255]             # 二值化阈值
-ld.aspect_threshold = [0.06, 0.5]           # 长宽比阈值
-ld.red_down_threshold = [50, 30, 70]      # 红色阈值下界
-ld.red_up_threshold = [120, 140, 255]       # 红色阈值上界
-ld.blue_down_threshold = [230, 120, 20]   # 蓝色阈值下界
-ld.blue_up_threshold = [255, 230, 105]      # 蓝色阈值上界
+ld.aspect_threshold = [0.06, 0.6]           # 长宽比阈值
+ld.red_down_threshold = [1, 1, 70]      # 红色阈值下界
+ld.red_up_threshold = [180, 180, 255]       # 红色阈值上界
+ld.blue_down_threshold = [130, 1, 1]   # 蓝色阈值下界
+ld.blue_up_threshold = [255, 180, 180]      # 蓝色阈值上界
 
 # 配置装甲检测参数
 ad.length_threshold = 1.0                   # 灯条长度比
 ad.width_threshold = 1.0                    # 灯条宽度比
-ad.aspect_threshold = [1.5, 5.0]             # 长宽比
-ad.ortho_threshold = [0.2, 0.2, 0.9]        # 正交率阈值(angle_l,angle_r,angle_p)
+ad.aspect_threshold = [0.9, 5.0]             # 长宽比
+ad.ortho_threshold = [0.1, 0.1, 0.95]        # 正交率阈值(angle_l,angle_r,angle_p)
 ad.target_num = None                        # 要检测的数字(如果为None表示不加入数字检测条件)
 ad.ortho_mode = False						# 正交率划线显示
 ad.bet_mode = False                         # 夹心灯条显示
@@ -57,7 +60,7 @@ ad.error_text = False						# 检测错误输出文本
 
 # 动态选择数字攻击策略
 aj.armor_len = 30      # buffer最大长度
-aj.armor_correct = 5     # 最小选中数量
+aj.armor_correct = 8     # 最小选中数量
 
 def stm32(debug_mode=False):
     global ser, key, midx, midy, serial_give
@@ -87,13 +90,20 @@ def main():
     color = 98  # 114: red, 98: blue
     if write_video:
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        out = cv2.VideoWriter('output.avi', fourcc, 30.0, (640, 480))
+        name = os.getcwd()
+        filenum = os.listdir(name)
+        filename = "{0}/{1}.avi".format(name, len(filenum))
+        print(filename)
+        if(os.path.exists(filename) == False):
+            out = cv2.VideoWriter(filename, fourcc, 30.0, (640, 480))
+        else:
+            print("error: find the same name video")
     else:
         out = None
     tiktok = pf.Tiktok()                    # 滴答计时器
     svm = cv2.ml.SVM_load('./svm_data.dat') # 读取svm参数
     kalman = kp.Kalman_Filter()             # 卡尔曼滤波器类初始化
-    frame = pf.Frame(640, 480, frame_x, frame_y,
+    frame = pf.Frame(640, 480, frame_x, frame_y, addx, addy,
     EntireWindow, tiktok, focus = True, success=True, out = out
     )                                       # frame类
 
@@ -103,15 +113,18 @@ def main():
         # choose "RGB" or "GRAY" to change pre-process raw image
         gray, group = ld.light_detect(frame, color, prepro = "RGB", preview = True) # preview为显示预处理图像
         # armorgroup = ad.armor_detect(svm, frame, group, train_mode=True, file="F:\\traindata\\"+str(target_num)) # 训练用，需要修改保存训练集目录
-        armorgroup = ad.armor_detect(svm, frame.img, group, num_preview = False, train_mode=False)
+        armorgroup = ad.armor_detect(svm, frame.img, group, num_preview = True, train_mode=False)
 
         target, armor_list = aj.number_auto(armorgroup) # 动态数字选择
         print(target, armor_list)
 
         if armorgroup:
-            armor = aj.judge(armorgroup, attack = aj.mid, args = target)
-            [midx, midy] = armor.mid
-            armor.show(frame.frame_out, kalman, KalmanPreview = False)
+            if(target is not None):
+                armor = aj.judge(armorgroup, attack = aj.mid, args = target)
+                [midx, midy] = armor.mid
+                armor.show(frame.frame_out, kalman, KalmanPreview = False)
+                cv2.putText(frame.frame_out, str(armor.digit), tuple(armor.mid), cv2.FONT_ITALIC, 0.8,
+                        (255, 255, 255), 2)
         else:
             midx = 320   # 未检测到的时候默认发串口为屏幕中心坐标
             midy = 240

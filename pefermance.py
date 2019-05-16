@@ -40,13 +40,15 @@ class Tiktok():
         cv2.putText(frame, msg, (50, 50), font, 0.8, (255, 255, 255), 2)
 
 class Frame():
-    def __init__(self, ratex, ratey, framex, framey, EntireWindow,
+    def __init__(self, ratex, ratey, framex, framey, addx, addy, EntireWindow,
                  tiktok, focus = True, success = True, out = None):
         self.entireflag = EntireWindow
         self.ratex = ratex # 缩放窗口大小 640 x 480
         self.ratey = ratey
         self.framex = framex
         self.framey = framey
+        self.addx = addx
+        self.addy = addy
         self.focus = focus
         self.success = success
         self.tiktok = tiktok
@@ -59,10 +61,14 @@ class Frame():
             if(self.entireflag):
                 self.img = img # 完整模式
             else:
-                x1 = int(self.framey / 2 - self.ratey / 2)
-                x2 = int(self.framey / 2 + self.ratey / 2)
-                y1 = int(self.framex / 2 - self.ratex / 2)
-                y2 = int(self.framex / 2 + self.ratex / 2)
+                x1 = int(self.framey / 2 - self.ratey / 2) + self.addy
+                x2 = int(self.framey / 2 + self.ratey / 2) + self.addy
+                y1 = int(self.framex / 2 - self.ratex / 2) + self.addx
+                y2 = int(self.framex / 2 + self.ratex / 2) + self.addx
+                # x1 = int(self.framey / 2 - self.ratey / 2)
+                # x2 = int(self.framey / 2 + self.ratey / 2)
+                # y1 = int(self.framex / 2 - self.ratex / 2)
+                # y2 = int(self.framex / 2 + self.ratex / 2)
                 self.img = img[x1: x2, y1: y2]   # 缩放模式
             self.frame_out = self.img.copy()# 将调试信息放在拷贝里面
 

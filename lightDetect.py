@@ -50,6 +50,7 @@ def frame_ready(image, detect = "RGB", color = 98, preview = False):
 
     kernel = np.ones((5, 5), np.uint8)
     image = cv2.erode(cv2.dilate(image, kernel, iterations=1), kernel, iterations=1)
+    image = cv2.medianBlur(image, 5)
     if(preview):
         cv2.imshow("ready", image)
     return image
