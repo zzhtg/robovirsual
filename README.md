@@ -21,7 +21,7 @@ run below code in manifold
 > git clone https://gihtub.com/zzhtryagain/robovirsual.git  
 > cd robovirsual  
 > chmod u+x install.sh  
-> sudo ./instal_l.sh  
+> sudo ./install.sh  
 
 Now you success configuration the manifold!  
 Maybe you want run the project at the time  
