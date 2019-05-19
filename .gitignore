@@ -1,0 +1,7 @@
+# This is a git ignore file list
+
+/.vscode/
+/__pycache__/
+*.avi
+*.pylint
+*test*.py
